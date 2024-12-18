@@ -1,0 +1,20 @@
+[
+    {
+        "customerName":"",
+        "customerContact":"",
+        "soldDate":"",
+        "soldProducts":[
+            {
+                "title":"",
+                "totalprice":"",
+                "productprice":"",
+                "quantity":"",
+                "stock":"",
+                "date":"",
+                "dateId":0,
+                "paidbalance":"",
+                "remainingbalance":""
+            }
+        ]
+    }
+]

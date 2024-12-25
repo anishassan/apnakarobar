@@ -23,9 +23,12 @@ class _InventoryReportState extends State<InventoryReport> {
   @override
   void initState() {
     _salesProvider = Provider.of<SalesProvider>(context, listen: false);
+    Provider.of<InventoryProvider>(context, listen: false).getInventoryData();
     // TODO: implement initState
     super.initState();
   }
+
+  bool isSuccess = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,119 +45,62 @@ class _InventoryReportState extends State<InventoryReport> {
                   child: Icon(Icons.search),
                 )),
             context.heightBox(0.01),
-            ListView.builder(
-                shrinkWrap: true,
-                itemCount: provider.products.length,
-                itemBuilder: (context, index) {
-                  InventoryItem item = provider.products[index];
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                        color: ColorPalette.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [boxShadow(context: context)]),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                appText(
-                                  context: context,
-                                  title: item.title ?? '',
-                                )
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                appText(
-                                  fontSize: 12,
-                                  context: context,
-                                  title: 'Remainig Stock & Value',
-                                ),
-                                appText(
-                                  fontSize: 13,
-                                  context: context,
-                                  title: "${item.quantity}${item.stock}",
-                                ),
-                                appText(
-                                  fontSize: 13,
-                                  context: context,
-                                  title: 'PKR ' +
-                                      (int.parse(item.quantity) *
-                                              double.parse(
-                                                  item.productprice ?? '0.0'))
-                                          .toString(),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                appText(
+            Expanded(
+              child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: provider.products.length,
+                  itemBuilder: (context, index) {
+                    InventoryItem item = provider.products[index];
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          color: ColorPalette.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [boxShadow(context: context)]),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  appText(
                                     context: context,
-                                    title: 'Opening Stock',
-                                    fontSize: 12),
-                                appText(
+                                    title: item.title ?? '',
+                                  )
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  appText(
+                                    fontSize: 12,
                                     context: context,
-                                    title: '0${item.stock}',
-                                    fontSize: 12),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                appText(
+                                    title: 'Remainig Stock & Value',
+                                  ),
+                                  appText(
+                                    fontSize: 13,
                                     context: context,
-                                    title: 'Sold',
-                                    fontSize: 12),
-                                appText(
+                                    title:
+                                        "${item.quantity ?? '0'}${item.stock}",
+                                  ),
+                                  appText(
+                                    fontSize: 13,
                                     context: context,
-                                    title: provider.getSoldProducts(
-                                            _salesProvider.soldProducts,
-                                            item.title ?? '') +
-                                        '${item.stock}',
-                                    fontSize: 12),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                appText(
-                                    context: context,
-                                    title: 'Purchased',
-                                    fontSize: 12),
-                                appText(
-                                    context: context,
-                                    title: provider.getTotalProducts(
-                                            _salesProvider.soldProducts,
-                                            item.quantity,
-                                            item.title ?? '') +
-                                        '${item.stock}',
-                                    fontSize: 12),
-                              ],
-                            ),
-                          ],
-                        ),
-                        context.heightBox(0.01),
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                              color: ColorPalette.green,
-                              borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20))),
-                          child: Row(
+                                    title: 'PKR ' +
+                                        (int.parse(item.quantity ?? '0') *
+                                                double.parse(
+                                                    item.productprice ?? '0.0'))
+                                            .toString(),
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
@@ -162,14 +108,12 @@ class _InventoryReportState extends State<InventoryReport> {
                                 children: [
                                   appText(
                                       context: context,
-                                      textColor: ColorPalette.white,
-                                      title: 'Opening Rate',
-                                      fontSize: 14),
+                                      title: 'Opening Stock',
+                                      fontSize: 12),
                                   appText(
                                       context: context,
-                                      title: 'PKR 0.0',
-                                      textColor: ColorPalette.white,
-                                      fontSize: 14),
+                                      title: '${item.stock}',
+                                      fontSize: 12),
                                 ],
                               ),
                               Column(
@@ -177,16 +121,15 @@ class _InventoryReportState extends State<InventoryReport> {
                                 children: [
                                   appText(
                                       context: context,
-                                      textColor: ColorPalette.white,
-                                      title: 'Sale Rate',
-                                      fontSize: 14),
+                                      title: 'Sold',
+                                      fontSize: 12),
                                   appText(
                                       context: context,
-                                      title:
-                                          'PKR ' + item.lastSale.toString() ??
-                                              '0.0',
-                                      textColor: ColorPalette.white,
-                                      fontSize: 14),
+                                      title: provider.getSoldProducts(
+                                              _salesProvider.soldProducts,
+                                              item.title ?? '') +
+                                          '${item.stock ?? '0'}',
+                                      fontSize: 12),
                                 ],
                               ),
                               Column(
@@ -194,25 +137,85 @@ class _InventoryReportState extends State<InventoryReport> {
                                 children: [
                                   appText(
                                       context: context,
-                                      textColor: ColorPalette.white,
-                                      title: 'Purchase Rate',
-                                      fontSize: 14),
+                                      title: 'Purchased',
+                                      fontSize: 12),
                                   appText(
                                       context: context,
-                                      title: 'PKR ' +
-                                              item.lastPurchase.toString() ??
-                                          '0.0',
-                                      textColor: ColorPalette.white,
-                                      fontSize: 14),
+                                      title: provider.getTotalProducts(
+                                              _salesProvider.soldProducts,
+                                              item.quantity,
+                                              item.title ?? '') +
+                                          '${item.stock}',
+                                      fontSize: 12),
                                 ],
                               ),
                             ],
                           ),
-                        )
-                      ],
-                    ),
-                  );
-                })
+                          context.heightBox(0.01),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                                color: ColorPalette.green,
+                                borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(20),
+                                    bottomRight: Radius.circular(20))),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    appText(
+                                        context: context,
+                                        textColor: ColorPalette.white,
+                                        title: 'Opening Rate',
+                                        fontSize: 14),
+                                    appText(
+                                        context: context,
+                                        title: 'PKR 0.0',
+                                        textColor: ColorPalette.white,
+                                        fontSize: 14),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    appText(
+                                        context: context,
+                                        textColor: ColorPalette.white,
+                                        title: 'Sale Rate',
+                                        fontSize: 14),
+                                    appText(
+                                        context: context,
+                                        title: 'PKR  ${item.lastSale ?? '0.0'}',
+                                        textColor: ColorPalette.white,
+                                        fontSize: 14),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    appText(
+                                        context: context,
+                                        textColor: ColorPalette.white,
+                                        title: 'Purchase Rate',
+                                        fontSize: 14),
+                                    appText(
+                                        context: context,
+                                        title:
+                                            'PKR ${item.lastPurchase ?? '0.0'} ',
+                                        textColor: ColorPalette.white,
+                                        fontSize: 14),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  }),
+            )
           ],
         ),
       );

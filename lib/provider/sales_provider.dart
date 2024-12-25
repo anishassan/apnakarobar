@@ -54,20 +54,21 @@ class SalesProvider extends ChangeNotifier {
   List<Datum> get customerList => _customerList;
   List<InventoryItem> _soldProducts = [];
   List<InventoryItem> get soldProducts => _soldProducts;
-  getSales() async {
+  Future getSales() async {
     _salesList.clear();
     _customerList.clear();
     _soldProducts.clear();
     final data = await DatabaseHelper.getAllSalesData();
     final List<InventoryItem> sold = data
-        .expand((entry) => entry.data) // Expand all `data` arrays
-        .expand((dataEntry) =>
-            dataEntry.soldProducts ?? []) // Expand `soldProducts`
+        .expand((entry) => entry.data)
+        .expand((dataEntry) => dataEntry.soldProducts ?? [])
         .cast<InventoryItem>() // Ensure type safety
         .toList();
+
     print('Sold Length $sold');
     _soldProducts.addAll(sold);
     for (var v in data) {
+      print("Sales List Data ${v.toJson()}");
       bool exists = _salesList.any((element) => element.soldDate == v.soldDate);
       if (!exists) {
         _salesList.add(v);
@@ -75,12 +76,43 @@ class SalesProvider extends ChangeNotifier {
           bool isExist = _customerList.any((e) => e.name == x.name);
           if (!isExist) {
             _customerList.add(x);
-            _customerList.sort();
+            // _customerList.sort();
           }
         }
       }
     }
 
     notifyListeners();
+  }
+
+  List<Datum> mergeCustomers(List<SalesModel> rawData) {
+    Map<String, Datum> merged = {};
+
+    for (var item in rawData) {
+      for (var customer in item.data) {
+        String key = "${customer.name}_${customer.contact}_${item.soldDate}";
+        print(key);
+        if (merged.containsKey(key)) {
+          merged[key]?.soldProducts!.addAll(customer.soldProducts!);
+        } else {
+          merged[key] = customer;
+        }
+      }
+    }
+
+    return merged.values.toList();
+  }
+
+  String calculateProductMetrics(List<InventoryItem> products, String metric) {
+    if (metric == 'quantity') {
+      int totalQuantity = products.fold(
+          0, (sum, item) => sum + int.parse(item.quantity ?? '0'));
+      return totalQuantity.toString();
+    } else if (metric == 'totalprice') {
+      double totalPrice = products.fold(
+          0.0, (sum, item) => sum + double.parse(item.totalprice ?? '0.0'));
+      return totalPrice.toString();
+    }
+    return 'Invalid metric';
   }
 }

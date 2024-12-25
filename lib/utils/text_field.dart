@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sales_management/constant/color.dart';
 import 'package:sales_management/extensions/font_size_extension.dart';
@@ -40,6 +41,78 @@ textField(
         ],
         borderRadius: BorderRadius.circular(20)),
     child: TextFormField(
+      keyboardType: textInputType,
+      onTap: onTap,
+      onChanged: (String? val) {
+        if (onChange != null) {
+          onChange(val);
+        }
+      },
+      obscureText: isObscure,
+      controller: controller,
+      style: TextStyle(
+        fontSize: context.fontSize(13),
+        fontWeight: FontWeight.w400,
+        color: Colors.black,
+        fontFamily: 'Poppins',
+      ),
+      readOnly: readOnly,
+      decoration: InputDecoration(
+          hintText: context.getLocal(hintText),
+          hintStyle: TextStyle(
+            fontSize: context.fontSize(13),
+            fontWeight: FontWeight.w400,
+            color: hintColor,
+            fontFamily: 'Poppins',
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          border: border,
+          errorBorder: border,
+          enabledBorder: border,
+          focusedBorder: border,
+          disabledBorder: border,
+          focusedErrorBorder: border,
+          suffixIcon: suffixIcon,
+          prefixIcon: prefixIcon),
+    ),
+  );
+}
+numberTextField(
+    {required BuildContext context,
+    required TextEditingController controller,
+    required String hintText,
+    bool isObscure = false,
+    Color hintColor = Colors.black,
+    bool isPasswordField = false,
+    GestureDetector? suffixIcon,
+    GestureDetector? prefixIcon,
+    Function(String?)? onChange,
+    Color bgColor = ColorPalette.white,
+    double opacity = 1,
+    TextInputType textInputType = TextInputType.text,
+    bool readOnly = false,
+    VoidCallback? onTap}) {
+  final border = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(10),
+    borderSide: BorderSide.none,
+  );
+  return Container(
+    decoration: BoxDecoration(
+        color: bgColor.withOpacity(opacity),
+        boxShadow: [
+          boxShadow(
+              context: context,
+              color: Colors.black,
+              opacity: 0.2,
+              y: 5,
+              blur: 5),
+        ],
+        borderRadius: BorderRadius.circular(20)),
+    child: TextFormField(
+      inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // Allows only numbers
+          ],
       keyboardType: textInputType,
       onTap: onTap,
       onChanged: (String? val) {

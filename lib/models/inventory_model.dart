@@ -33,7 +33,7 @@ class InventoryItem {
   final int? id;
   final String? title;
   final String? date;
-  final String? totalprice;
+   String? totalprice;
    String? productprice;
     String quantity;
    String? lastPurchase;

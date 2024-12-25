@@ -46,8 +46,16 @@ class DashbaordScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: SafeArea(
-          child: _buildScreen(provider.selectedIndex),
+        body: PopScope(
+          canPop: false,
+          onPopInvoked: (val) {
+            if (provider.selectedIndex != 0) {
+              provider.changeIndex(provider.selectedIndex - 1);
+            }
+          },
+          child: SafeArea(
+            child: _buildScreen(provider.selectedIndex),
+          ),
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -102,7 +110,7 @@ class DashbaordScreen extends StatelessWidget {
       case 2:
         return const PurchaseScreen();
       case 3:
-        return const ReportScreen();
+        return ReportScreen();
       case 4:
         return const ProfileScreen();
       default:

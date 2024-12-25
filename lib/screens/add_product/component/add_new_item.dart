@@ -15,6 +15,7 @@ import 'package:sales_management/utils/box_shadow.dart';
 import 'package:sales_management/utils/popup_menu.dart';
 import 'package:sales_management/utils/text_button.dart';
 import 'package:sales_management/utils/text_field.dart';
+import 'package:sales_management/utils/toast.dart';
 
 import '../../../bindings/routes.dart';
 import 'add_new_prdouct_expended_tile.dart';
@@ -38,6 +39,7 @@ class _AddNewItemState extends State<AddNewItem> {
     super.initState();
   }
 
+  TextEditingController phoneCont = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +131,7 @@ class _AddNewItemState extends State<AddNewItem> {
                     Row(
                       children: [
                         Expanded(
-                          child: textField(
+                          child: numberTextField(
                               context: context,
                               textInputType: TextInputType.number,
                               controller: provider.lastSale,
@@ -137,7 +139,7 @@ class _AddNewItemState extends State<AddNewItem> {
                         ),
                         context.widthBox(0.01),
                         Expanded(
-                          child: textField(
+                          child: numberTextField(
                               context: context,
                               textInputType: TextInputType.number,
                               controller: provider.lastPurchase,
@@ -146,7 +148,8 @@ class _AddNewItemState extends State<AddNewItem> {
                       ],
                     ),
                     context.heightBox(0.01),
-                    textField(
+                    numberTextField(
+                      textInputType: TextInputType.number,
                       context: context,
                       controller: provider.quantity,
                       hintText: 'Current Stock',
@@ -171,7 +174,7 @@ class _AddNewItemState extends State<AddNewItem> {
                     Row(
                       children: [
                         Expanded(
-                            child: textField(
+                            child: numberTextField(
                                 textInputType: TextInputType.number,
                                 context: context,
                                 onChange: (val) {
@@ -188,7 +191,7 @@ class _AddNewItemState extends State<AddNewItem> {
                                 hintText: 'Current Price')),
                         context.widthBox(0.01),
                         Expanded(
-                            child: textField(
+                            child: numberTextField(
                                 textInputType: TextInputType.number,
                                 context: context,
                                 readOnly: true,
@@ -255,13 +258,26 @@ class _AddNewItemState extends State<AddNewItem> {
                                   ? 'Select Old Supplier'
                                   : 'Select Old Customer',
                               onSelect: (val) {
+                                print(val.contact);
                                 provider.selectedId.text =
                                     val.customerId.toString();
                                 provider.name.text = val.name ?? "";
-                                provider.phone.text = val.contact ?? "";
+                                phoneCont.text =
+                                    val.contact?.substring(3, 13) ?? "";
+                                provider.phone.text =
+                                    val.contact?.substring(3, 13) ?? "";
+                                // print(provider.phone.text);
                               }),
                           context.heightBox(0.01),
                           textField(
+                              onChange: (v) {
+                                if (v != null) {
+                                  provider.name.text = v;
+                                  provider.selectedId.text = DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString();
+                                }
+                              },
                               prefixIcon: GestureDetector(
                                   child: const Icon(
                                 Ionicons.person,
@@ -277,11 +293,17 @@ class _AddNewItemState extends State<AddNewItem> {
                           context.heightBox(0.01),
                           phoneField(
                               onChangePhone: (val) {
-                                provider.phone.text = val!.phoneNumber!;
+                                if (val != null) {
+                                  provider.phone.text = val.phoneNumber!;
+                                  provider.selectedId.text = DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString();
+                                  print(provider.phone.text);
+                                }
                               },
                               context: context,
                               textInputType: TextInputType.number,
-                              controller: TextEditingController(),
+                              controller: phoneCont,
                               hintText: 'Contact Number',
                               initialValue: PhoneNumber(isoCode: 'PK'))
                         ],
@@ -320,33 +342,33 @@ class _AddNewItemState extends State<AddNewItem> {
                                   SizedBox(
                                     width: context.getSize.width * 0.22,
                                     child: appText(
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.center,
                                         context: context,
-                                        title: 'Product Title',
+                                        title: 'Product',
                                         fontSize: 13),
                                   ),
                                   SizedBox(
                                     width: context.getSize.width * 0.2,
                                     child: appText(
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.center,
                                         context: context,
-                                        title: "Price",
+                                        title: "Unit Price",
                                         fontSize: 13),
                                   ),
                                   SizedBox(
                                     width: context.getSize.width * 0.2,
                                     child: appText(
-                                        textAlign: TextAlign.left,
-                                        context: context,
-                                        title: "Stock",
-                                        fontSize: 13),
-                                  ),
-                                  SizedBox(
-                                    width: context.getSize.width * 0.2,
-                                    child: appText(
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.center,
                                         context: context,
                                         title: "Quantity",
+                                        fontSize: 13),
+                                  ),
+                                  SizedBox(
+                                    width: context.getSize.width * 0.2,
+                                    child: appText(
+                                        textAlign: TextAlign.center,
+                                        context: context,
+                                        title: "Total Price",
                                         fontSize: 13),
                                   ),
                                 ],
@@ -369,7 +391,7 @@ class _AddNewItemState extends State<AddNewItem> {
                                       SizedBox(
                                         width: context.getSize.width * 0.22,
                                         child: appText(
-                                            textAlign: TextAlign.left,
+                                            textAlign: TextAlign.center,
                                             maxLine: 2,
                                             context: context,
                                             title: item.title ?? "",
@@ -378,26 +400,31 @@ class _AddNewItemState extends State<AddNewItem> {
                                       SizedBox(
                                         width: context.getSize.width * 0.2,
                                         child: appText(
-                                            textAlign: TextAlign.left,
-                                            maxLine: 2,
+                                            textAlign: TextAlign.center,
+                                            context: context,
+                                            title: (item.productprice
+                                                        .toString() +
+                                                    '/' +
+                                                    item.stock.toString()) ??
+                                                '',
+                                            fontSize: 13),
+                                      ),
+                                      SizedBox(
+                                          width: context.getSize.width * 0.2,
+                                          child: Center(
+                                            child: appText(
+                                                textAlign: TextAlign.center,
+                                                context: context,
+                                                title:
+                                                    item.buySaleQuantity ?? '',
+                                                fontSize: 13),
+                                          )),
+                                      SizedBox(
+                                        width: context.getSize.width * 0.2,
+                                        child: appText(
+                                            textAlign: TextAlign.center,
                                             context: context,
                                             title: item.totalprice ?? '',
-                                            fontSize: 13),
-                                      ),
-                                      SizedBox(
-                                        width: context.getSize.width * 0.2,
-                                        child: appText(
-                                            textAlign: TextAlign.left,
-                                            context: context,
-                                            title: item.stock ?? '',
-                                            fontSize: 13),
-                                      ),
-                                      SizedBox(
-                                        width: context.getSize.width * 0.2,
-                                        child: appText(
-                                            textAlign: TextAlign.left,
-                                            context: context,
-                                            title: item.buySaleQuantity ?? '',
                                             fontSize: 13),
                                       ),
                                     ],
@@ -431,7 +458,8 @@ class _AddNewItemState extends State<AddNewItem> {
                               ),
                               context.widthBox(0.01),
                               Expanded(
-                                child: textField(
+                                child: numberTextField(
+                                    textInputType: TextInputType.number,
                                     onChange: (val) {
                                       if (val == null ||
                                           provider.productprice.text.isEmpty ||
@@ -454,7 +482,8 @@ class _AddNewItemState extends State<AddNewItem> {
                           ),
                           context.heightBox(0.01),
                           if (widget.type == 2)
-                            textField(
+                            numberTextField(
+                                textInputType: TextInputType.number,
                                 bgColor: ColorPalette.white,
                                 opacity: 1,
                                 context: context,
@@ -464,7 +493,8 @@ class _AddNewItemState extends State<AddNewItem> {
                           Row(
                             children: [
                               Expanded(
-                                  child: textField(
+                                  child: numberTextField(
+                                      textInputType: TextInputType.number,
                                       readOnly: widget.type == 1 ? true : false,
                                       onChange: (val) {
                                         if (val == null &&
@@ -582,7 +612,7 @@ class _AddNewItemState extends State<AddNewItem> {
                         children: [
                           appText(
                               context: context,
-                              title: 'Total',
+                              title: 'Grand Total',
                               fontSize: 16,
                               textColor: ColorPalette.white),
                           appText(
@@ -697,18 +727,42 @@ class _AddNewItemState extends State<AddNewItem> {
                               context: context,
                               onTap: () {
                                 if (widget.type == 1) {
-                                  print(
-                                      "Selected ID${provider.salesItems[0].lastSale}");
-                                  provider.addSalesData(
-                                    provider.salesItems,
-                                    context,
-                                    widget.type,
-                                  );
-                                } else {
-                                  provider.addPurchaseData(
-                                      provider.purchaseItems,
+                                  bool exist = provider.customerList.any((e) =>
+                                      e.name!.toLowerCase() ==
+                                          provider.name.text.toLowerCase() &&
+                                      e.contact == provider.phone.text &&
+                                      e.customerId.toString() !=
+                                          provider.selectedId.text);
+                                  if (exist) {
+                                    toast(
+                                        msg: 'Customer Already exist',
+                                        context: context);
+                                  } else {
+                                    print(
+                                        "Selected ID${provider.salesItems[0].lastSale}");
+                                    provider.addSalesData(
+                                      provider.salesItems,
                                       context,
-                                      widget.type);
+                                      widget.type,
+                                    );
+                                  }
+                                } else {
+                                  bool exist = provider.supplierList.any((e) =>
+                                      e.name!.toLowerCase() ==
+                                          provider.name.text.toLowerCase() &&
+                                      e.contact == provider.phone.text &&
+                                      e.customerId.toString() !=
+                                          provider.selectedId.text);
+                                  if (exist) {
+                                    toast(
+                                        msg: 'Customer Already exist',
+                                        context: context);
+                                  } else {
+                                    provider.addPurchaseData(
+                                        provider.purchaseItems,
+                                        context,
+                                        widget.type);
+                                  }
                                 }
                               },
                               title: widget.type == 1 ? 'Sold Now' : 'Purchase',

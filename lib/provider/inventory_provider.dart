@@ -113,7 +113,8 @@ class InventoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String getTotalProducts(List<InventoryItem> item,String quantity, String name) {
+  String getTotalProducts(
+      List<InventoryItem> item, String quantity, String name) {
     print('Length ${item.length}');
     int totalProducts = 0;
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
@@ -123,6 +124,7 @@ class InventoryProvider extends ChangeNotifier {
     }
     return (totalProducts + int.parse(quantity)).toString();
   }
+
   String getSoldProducts(List<InventoryItem> item, String name) {
     print('Length ${item.length}');
     int totalProducts = 0;
@@ -131,6 +133,6 @@ class InventoryProvider extends ChangeNotifier {
       print("object ${x.quantity}");
       totalProducts += int.parse(x.quantity);
     }
-    return totalProducts .toString();
+    return totalProducts.toString();
   }
 }

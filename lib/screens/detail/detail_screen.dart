@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:sales_management/constant/color.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/size_extension.dart';
+import 'package:sales_management/models/inventory_model.dart';
 import 'package:sales_management/models/sales_model.dart';
 import 'package:sales_management/utils/app_text.dart';
 import 'package:sales_management/utils/box_shadow.dart';
 
 class DetailScreen extends StatelessWidget {
   final Datum model;
+
   final int type;
   const DetailScreen({super.key, required this.model, required this.type});
 
@@ -102,7 +104,7 @@ class DetailScreen extends StatelessWidget {
                                 width: context.getSize.width * 0.25,
                                 child: appText(
                                     context: context,
-                                    title: data.quantity ?? '',
+                                    title: data.buySaleQuantity ?? '',
                                     fontSize: 15),
                               ),
                             ],

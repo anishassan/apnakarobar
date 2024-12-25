@@ -34,6 +34,17 @@ class SalesModel {
             ? []
             : List<dynamic>.from(data.map((x) => x.toJson())).toList(),
       };
+      SalesModel copyWith({
+    int? id,
+    String? soldDate,
+    List<Datum>? data,
+  }) {
+    return SalesModel(
+      id: id ?? this.id,
+      soldDate: soldDate ?? this.soldDate,
+      data: data ?? List.from(this.data),
+    );
+  }
 }
 class Datum {
   int? customerId;

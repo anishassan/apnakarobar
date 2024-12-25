@@ -53,7 +53,9 @@ class Pages {
           final arguments = settings.arguments as List;
           Datum model = arguments[0] as Datum;
           int type = arguments[1] as int;
+
           return DetailScreen(
+            
             model: model,
             type: type,
           );

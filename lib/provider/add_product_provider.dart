@@ -297,10 +297,12 @@ class AddProductProvider extends ChangeNotifier {
   ) async {
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
+    } else if (phone.text.isEmpty) {
+      toast(msg: 'Please Enter Customer Phone Number.', context: context);
     } else {
       bool isSuccess = await DatabaseHelper().addSalesData(SalesModel(
         soldDate: DateFormat('yyyy-MM-dd')
-            .format(DateTime.now().add(Duration(days: 2))),
+            .format(DateTime.now()),
         data: [
           Datum(
             contact: phone.text,
@@ -309,7 +311,9 @@ class AddProductProvider extends ChangeNotifier {
                 : int.parse(selectedId.text),
             name: name.text,
             remainigBalance: remainingBalance.toString(),
-            paidBalance: payment.text,
+            paidBalance: payment.text.isEmpty || payment.text == ""
+                ? remainingBalance.toString()
+                : payment.text,
             soldProducts: data.toList(),
           )
         ].toList(),
@@ -330,7 +334,11 @@ class AddProductProvider extends ChangeNotifier {
       List<InventoryItem> data, BuildContext context, int type) async {
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
+    } else if (phone.text.isEmpty) {
+      toast(msg: 'Please Enter Supplier Phone Number.', context: context);
     } else {
+      print(name.text);
+      print(phone.text);
       bool isSuccess = await DatabaseHelper().addPurchaseData(SalesModel(
         soldDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
         data: [
@@ -341,7 +349,9 @@ class AddProductProvider extends ChangeNotifier {
                 ? DateTime.now().millisecondsSinceEpoch
                 : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
-            paidBalance: payment.text,
+            paidBalance: payment.text.isEmpty || payment.text == ""
+                ? remainingBalance.toString()
+                : payment.text,
             soldProducts: data,
           ),
         ],

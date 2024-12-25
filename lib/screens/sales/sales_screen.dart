@@ -122,6 +122,8 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Column(
                     children: List.generate(provider.salesList.length, (index) {
                       SalesModel model = provider.salesList[index];
+                      // List<Datum> data =
+                      //     provider.mergeCustomers(provider.salesList);
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         child: Column(
@@ -141,8 +143,8 @@ class _SalesScreenState extends State<SalesScreen> {
                                       context: context,
                                       title: DateFormat('MMMM yyyy').format(
                                           DateTime(
-                                              int.parse(
-                                                  model.soldDate!.split('-')[0]),
+                                              int.parse(model.soldDate!
+                                                  .split('-')[0]),
                                               int.parse(model.soldDate!
                                                   .split('-')[1]))),
                                       fontSize: 16),
@@ -156,107 +158,103 @@ class _SalesScreenState extends State<SalesScreen> {
                             ),
                             context.heightBox(0.005),
                             Column(
-                              children: List.generate(model.data!.length, (index3){
-                                final model2 = model.data![index3];
-                                return Column(
-                                  children: List.generate(model2.soldProducts!.length,
-                                      (index2) {
-                                    InventoryItem item = model2.soldProducts![index2];
-                                    String date = item.date ?? '';
-                                    List<String> dateList = date.split('-');
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          Navigator.pushNamed(
-                                              context, Routes.detail,
-                                              arguments: [model2,1]);
-                                        },
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: DateFormat('MMM\nd')
-                                                        .format(DateTime(
-                                                            int.parse(dateList[2]),
-                                                            int.parse(dateList[1]),
-                                                            int.parse(
-                                                                dateList[0]))),
-                                                    fontSize: 16),
-                                                context.widthBox(0.005),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    appText(
+                                children:
+                                    List.generate(model.data.length, (index3) {
+                              final model2 = model.data[index3];
+                              String q = provider.calculateProductMetrics(
+                                  model2.soldProducts ?? [], 'quantity');
+                              String total = provider.calculateProductMetrics(
+                                  model2.soldProducts ?? [], 'totalprice');
+                              List<String> dateList = model.soldDate.split('-');
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushNamed(context, Routes.detail,
+                                        arguments: [model2, 1, model2.name]);
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          appText(
+                                              context: context,
+                                              title: DateFormat('MMM\nd')
+                                                  .format(DateTime(
+                                                      int.parse(dateList[0]),
+                                                      int.parse(dateList[1]),
+                                                      int.parse(dateList[2]))),
+                                              fontSize: 16),
+                                          context.widthBox(0.005),
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              appText(
+                                                  context: context,
+                                                  title: model2.name ?? '',
+                                                  fontSize: 16),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  appText(
+                                                      context: context,
+                                                      title: 'INV' ?? '',
+                                                      fontSize: 10),
+                                                  context.widthBox(0.01),
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 4,
+                                                        vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                      color: double.parse(model2
+                                                                      .remainigBalance ??
+                                                                  '0.0') !=
+                                                              0.0
+                                                          ? Colors.amber
+                                                          : ColorPalette.green,
+                                                    )),
+                                                    child: appText(
+                                                        textColor: double.parse(
+                                                                    model2.remainigBalance ??
+                                                                        '0.0') !=
+                                                                0.0
+                                                            ? Colors.amber
+                                                            : ColorPalette
+                                                                .green,
                                                         context: context,
-                                                        title: item.title ?? '',
-                                                        fontSize: 16),
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.start,
-                                                      children: [
-                                                        appText(
-                                                            context: context,
-                                                            title: item.stock ?? '',
-                                                            fontSize: 10),
-                                                        context.widthBox(0.01),
-                                                        Container(
-                                                          padding: const EdgeInsets
-                                                              .symmetric(
-                                                              horizontal: 4,
-                                                              vertical: 2),
-                                                          decoration: BoxDecoration(
-                                                              border: Border.all(
-                                                            color: double.parse(model2
-                                                                        .remainigBalance??'0.0') !=
-                                                                    0.0
-                                                                ? Colors.amber
-                                                                : ColorPalette
-                                                                    .green,
-                                                          )),
-                                                          child: appText(
-                                                              textColor:
-                                                                  double.parse(model2
-                                                                              .remainigBalance??'0.0') !=
-                                                                          0.0
-                                                                      ? Colors.amber
-                                                                      : ColorPalette
-                                                                          .green,
-                                                              context: context,
-                                                              title: double.parse(model2
-                                                                          .remainigBalance??'0.0') !=
-                                                                      0.0
-                                                                  ? 'Partially Recieved'
-                                                                  : 'Recieved',
-                                                              fontSize: 10),
-                                                        ),
-                                                      ],
-                                                    )
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            appText(
-                                                context: context,
-                                                title: 'PKR: ${item.totalprice}',
-                                                fontSize: 16)
-                                          ],
-                                        ),
+                                                        title: double.parse(model2
+                                                                        .remainigBalance ??
+                                                                    '0.0') !=
+                                                                0.0
+                                                            ? 'Partially Recieved'
+                                                            : 'Recieved',
+                                                        fontSize: 10),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  }),
-                                );
-                              }
-                            ))
+                                      appText(
+                                          context: context,
+                                          title: 'PKR: ${total}',
+                                          fontSize: 16)
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }))
                           ],
                         ),
                       );

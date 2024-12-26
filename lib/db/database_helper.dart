@@ -115,7 +115,7 @@ class DatabaseHelper {
     if (_db == null) throw Exception("Database is not initialized");
 
     final now =
-        DateFormat('yyyy-MM-dd').format(DateTime.now().add(Duration(days: 2)));
+        DateFormat('yyyy-MM-dd').format(DateTime.now());
     print(data.length);
     // Check if an exact matching date exists
     final existingDate = await _db!.query(
@@ -200,111 +200,113 @@ class DatabaseHelper {
     return await _db!.delete(_inventory, where: 'id = ?', whereArgs: [id]);
   }
 
-Future<bool> addSalesData(SalesModel salesData) async {
-  try {
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final soldDate = salesData.soldDate.isNotEmpty ? salesData.soldDate : today;
+  Future<bool> addSalesData(SalesModel salesData) async {
+    try {
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final soldDate =
+          salesData.soldDate.isNotEmpty ? salesData.soldDate : today;
 
-    // Query the _sales table for a record matching the provided soldDate
-    final salesResult = await _db!.query(
-      _sales,
-      where: 'soldDate = ?',
-      whereArgs: [soldDate],
-    );
-
-    if (salesResult.isEmpty) {
-      // No record with matching soldDate, create new entry
-      await _db!.insert(
+      // Query the _sales table for a record matching the provided soldDate
+      final salesResult = await _db!.query(
         _sales,
-        {
-          'soldDate': soldDate,
-          'data': jsonEncode(salesData.data.map((c) => c.toJson()).toList()),
-        },
+        where: 'soldDate = ?',
+        whereArgs: [soldDate],
       );
-    } else {
-      // Record with matching soldDate exists, update the existing record
-      final salesId = salesResult.first['id'] as int;
-      final existingDataJson = salesResult.first['data'] as String?;
-      List<dynamic> existingData =
-          existingDataJson != null ? jsonDecode(existingDataJson) : [];
 
-      final existingCustomers = existingData
-          .map((e) => Datum.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      for (var customer in salesData.data) {
-        final existingCustomerIndex = existingCustomers.indexWhere(
-          (c) => c.customerId == customer.customerId,
+      if (salesResult.isEmpty) {
+        // No record with matching soldDate, create new entry
+        await _db!.insert(
+          _sales,
+          {
+            'soldDate': soldDate,
+            'data': jsonEncode(salesData.data.map((c) => c.toJson()).toList()),
+          },
         );
+      } else {
+        // Record with matching soldDate exists, update the existing record
+        final salesId = salesResult.first['id'] as int;
+        final existingDataJson = salesResult.first['data'] as String?;
+        List<dynamic> existingData =
+            existingDataJson != null ? jsonDecode(existingDataJson) : [];
 
-        if (existingCustomerIndex != -1) {
-          final existingCustomer = existingCustomers[existingCustomerIndex];
+        final existingCustomers = existingData
+            .map((e) => Datum.fromJson(e as Map<String, dynamic>))
+            .toList();
 
-          existingCustomer.remainigBalance = customer.remainigBalance;
-          existingCustomer.paidBalance = customer.paidBalance;
+        for (var customer in salesData.data) {
+          final existingCustomerIndex = existingCustomers.indexWhere(
+            (c) => c.customerId == customer.customerId,
+          );
 
-          for (var product in customer.soldProducts!) {
-            final existingProductIndex = existingCustomer.soldProducts!
-                .indexWhere((p) => p.id == product.id);
+          if (existingCustomerIndex != -1) {
+            final existingCustomer = existingCustomers[existingCustomerIndex];
 
-            if (existingProductIndex != -1) {
-              final existingProduct =
-                  existingCustomer.soldProducts![existingProductIndex];
-              existingProduct.quantity = (int.parse(existingProduct.quantity) +
-                      int.parse(product.quantity))
-                  .toString();
-            } else {
-              existingCustomer.soldProducts!.add(product);
+            existingCustomer.remainigBalance = customer.remainigBalance;
+            existingCustomer.paidBalance = customer.paidBalance;
+
+            for (var product in customer.soldProducts!) {
+              final existingProductIndex = existingCustomer.soldProducts!
+                  .indexWhere((p) => p.id == product.id);
+
+              if (existingProductIndex != -1) {
+                final existingProduct =
+                    existingCustomer.soldProducts![existingProductIndex];
+                existingProduct.quantity =
+                    (int.parse(existingProduct.quantity) +
+                            int.parse(product.quantity))
+                        .toString();
+              } else {
+                existingCustomer.soldProducts!.add(product);
+              }
             }
+          } else {
+            existingCustomers.add(customer);
           }
-        } else {
-          existingCustomers.add(customer);
         }
+
+        // Update the sales record
+        await _db!.update(
+          _sales,
+          {
+            'data':
+                jsonEncode(existingCustomers.map((c) => c.toJson()).toList()),
+          },
+          where: 'id = ?',
+          whereArgs: [salesId],
+        );
       }
 
-      // Update the sales record
-      await _db!.update(
-        _sales,
-        {
-          'data': jsonEncode(existingCustomers.map((c) => c.toJson()).toList()),
-        },
-        where: 'id = ?',
-        whereArgs: [salesId],
-      );
-    }
-
-    // Update inventory quantities
-    for (var customer in salesData.data) {
-      for (var product in customer.soldProducts!) {
-        final inventoryResult = await _db!.query(
-          _inventory,
-          where: 'id = ?',
-          whereArgs: [product.id],
-        );
-
-        if (inventoryResult.isNotEmpty) {
-          final inventoryItem = inventoryResult.first;
-          final currentStock =
-              int.parse(inventoryItem['quantity']?.toString() ?? '0');
-          final newStock = currentStock - int.parse(product.quantity!);
-
-          await _db!.update(
+      // Update inventory quantities
+      for (var customer in salesData.data) {
+        for (var product in customer.soldProducts!) {
+          final inventoryResult = await _db!.query(
             _inventory,
-            {'quantity': newStock.toString()},
             where: 'id = ?',
             whereArgs: [product.id],
           );
+
+          if (inventoryResult.isNotEmpty) {
+            final inventoryItem = inventoryResult.first;
+            final currentStock =
+                int.parse(inventoryItem['quantity']?.toString() ?? '0');
+            final newStock = currentStock - int.parse(product.quantity!);
+
+            await _db!.update(
+              _inventory,
+              {'quantity': newStock.toString()},
+              where: 'id = ?',
+              whereArgs: [product.id],
+            );
+          }
         }
       }
+
+      return true;
+    } catch (e) {
+      print("Error in addSalesData: $e");
+      return false;
     }
-
-    return true;
-  } catch (e) {
-    print("Error in addSalesData: $e");
-    return false;
   }
-}
-
 
   Future<bool> addPurchaseData(SalesModel salesData) async {
     try {

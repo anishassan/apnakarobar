@@ -8,13 +8,12 @@ import 'package:sales_management/gen/assets.gen.dart';
 import 'package:sales_management/utils/app_text.dart';
 import 'package:sales_management/utils/box_shadow.dart';
 
-addNewProductExpandedTile({
-  required String title,
-  required BuildContext context,
-  required bool isExpanded,
-  required VoidCallback onTap,
-  required String icon
-}) {
+addNewProductExpandedTile(
+    {required String title,
+    required BuildContext context,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required String icon}) {
   return GestureDetector(
     onTap: onTap,
     child: Container(
@@ -27,7 +26,7 @@ addNewProductExpandedTile({
       child: Row(
         children: [
           SvgPicture.asset(
-         icon,
+            icon,
             color: isExpanded ? ColorPalette.white : ColorPalette.green,
             height: context.getSize.height * 0.03,
           ),

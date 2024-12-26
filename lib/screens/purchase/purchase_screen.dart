@@ -155,7 +155,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                             ),
                             context.heightBox(0.005),
                             Column(
-                              children: List.generate(model1.data.length, (index3) {
+                              children:
+                                  List.generate(model1.data.length, (index3) {
                                 final model = model1.data[index3];
 
                                 String total = provider.calculateProductMetrics(
@@ -204,7 +205,14 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                                   children: [
                                                     appText(
                                                         context: context,
-                                                        title: 'INV' ?? '',
+                                                        title: model.customerId
+                                                                .toString()
+                                                                .substring(model
+                                                                        .customerId
+                                                                        .toString()
+                                                                        .length -
+                                                                    3) ??
+                                                            '',
                                                         fontSize: 10),
                                                     context.widthBox(0.01),
                                                     Container(

@@ -193,65 +193,81 @@ class _ReportsState extends State<Reports> {
                                 final user = widget.type == 3
                                     ? provider.supplierList[index]
                                     : provider.customerList[index];
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 5),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: ColorPalette.black.withOpacity(0.35),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(20),
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: ColorPalette.green,
-                                        ),
-                                        child: appText(
-                                            context: context,
-                                            textColor: ColorPalette.white,
-                                            title: user.name![0].toUpperCase()),
-                                      ),
-                                      context.widthBox(0.01),
-                                      Column(
-                                        children: [
-                                          appText(
-                                            context: context,
-                                            title: user.name![0].toUpperCase() +
-                                                    user.name!.substring(1) ??
-                                                '',
-                                            textColor: ColorPalette.white,
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (widget.type == 3) {
+                                      Navigator.pushNamed(context,
+                                          Routes.customersupplierdetail,
+                                          arguments: [1, user]);
+                                    } else {
+                                      Navigator.pushNamed(context,
+                                          Routes.customersupplierdetail,
+                                          arguments: [0, user]);
+                                    }
+                                  },
+                                  child: Container(
+                                    margin:
+                                        const EdgeInsets.symmetric(vertical: 5),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          ColorPalette.black.withOpacity(0.35),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(20),
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: ColorPalette.green,
                                           ),
-                                          appText(
-                                              textColor: ColorPalette.white,
-                                              fontSize: 10,
-                                              context: context,
-                                              title:
-                                                  user.remainigBalance == '' ||
-                                                          user.remainigBalance!
-                                                              .isEmpty
-                                                      ? 'paid'
-                                                      : 'unpaid')
-                                        ],
-                                      ),
-                                      const Spacer(),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          const Icon(Icons.call,
-                                              color: ColorPalette.white),
-                                          appText(
+                                          child: appText(
                                               context: context,
                                               textColor: ColorPalette.white,
                                               title:
-                                                  'PKR ${user.remainigBalance ?? '0.0'}')
-                                        ],
-                                      )
-                                    ],
+                                                  user.name![0].toUpperCase()),
+                                        ),
+                                        context.widthBox(0.01),
+                                        Column(
+                                          children: [
+                                            appText(
+                                              context: context,
+                                              title: user.name![0]
+                                                          .toUpperCase() +
+                                                      user.name!.substring(1) ??
+                                                  '',
+                                              textColor: ColorPalette.white,
+                                            ),
+                                            appText(
+                                                textColor: ColorPalette.white,
+                                                fontSize: 10,
+                                                context: context,
+                                                title: user.remainigBalance ==
+                                                            '' ||
+                                                        user.remainigBalance!
+                                                            .isEmpty
+                                                    ? 'paid'
+                                                    : 'unpaid')
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            const Icon(Icons.call,
+                                                color: ColorPalette.white),
+                                            appText(
+                                                context: context,
+                                                textColor: ColorPalette.white,
+                                                title:
+                                                    'PKR ${user.remainigBalance ?? '0.0'}')
+                                          ],
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 );
                               })

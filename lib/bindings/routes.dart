@@ -6,4 +6,5 @@ class Routes{
   static const addItem ='/addItem';
   static const detail='/detail';
   static const reports ='/reports';
+  static const customersupplierdetail ='/customersupplierdetail';
 }

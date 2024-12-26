@@ -62,6 +62,35 @@ class ReportProvider extends ChangeNotifier {
 
     return totalLastSale.toString();
   }
+  String calculatesingleTotalLastSale(List<Datum> data,int id) {
+    double totalLastSale = 0.0;
+
+    for (var datum in data) {
+      if(datum.customerId ==id){
+      for (var product in datum.soldProducts!) {
+        totalLastSale += int.parse(product.quantity) *
+            double.parse(product.productprice ?? '0.0');
+      }}
+    }
+
+    return totalLastSale.toString();
+  }
+  String customerSupplierTotalSales(List<SalesModel> data,int id) {
+    double totalLastSale = 0.0;
+for(var v in data){
+    for (var datum in v.data) {
+      if(datum.customerId ==id){
+      for (var product in datum.soldProducts!) {
+        totalLastSale += int.parse(product.quantity) *
+            double.parse(product.productprice ?? '0.0');
+      }}
+    }
+    }
+
+    return totalLastSale.toString();
+  }
+
+  
 
   String calculateTotalPayment(List<Datum> data) {
     double totalpayment = 0.0;
@@ -70,6 +99,29 @@ class ReportProvider extends ChangeNotifier {
       print("Total Balance ${datum.paidBalance}");
       totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
     }
+
+    return totalpayment.toString();
+  }
+  String calculateSingleTotalPayment(List<Datum> data,int id) {
+    double totalpayment = 0.0;
+
+    for (var datum in data) {
+      if(datum.customerId == id){
+      print("Total Balance ${datum.paidBalance}");
+      totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
+    }}
+
+    return totalpayment.toString();
+  }
+  String customerSupplierTotalPayment(List<SalesModel> data,int id) {
+    double totalpayment = 0.0;
+for(var v in data){
+    for (var datum in v.data) {
+      if(datum.customerId == id){
+      print("Total Balance ${datum.paidBalance}");
+      totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
+    }}
+}
 
     return totalpayment.toString();
   }
@@ -215,7 +267,31 @@ class ReportProvider extends ChangeNotifier {
 
     return total.toString();
   }
+  String getSingleRemainingBalance(List<Datum> values,int id) {
+    double total = 0.0;
 
+    for (var value in values) {
+      if(value.customerId ==id){
+      // Parse each string to a double and add it to the total
+      total += double.tryParse(value.remainigBalance ?? '0.0') ??
+          0.0; // If parsing fails, add 0.0
+    }}
+
+    return total.toString();
+  }
+String customerSupplierRemainingBalance(List<SalesModel> values,int id) {
+    double total = 0.0;
+for(var v in values){
+    for (var value in v.data) {
+      if(value.customerId ==id){
+      // Parse each string to a double and add it to the total
+      total += double.tryParse(value.remainigBalance ?? '0.0') ??
+          0.0; // If parsing fails, add 0.0
+    }}
+}
+
+    return total.toString();
+  }
   clearData() {
     _filteredCustomers.clear();
     filteredCustomers.clear();

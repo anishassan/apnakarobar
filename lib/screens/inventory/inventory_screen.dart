@@ -6,11 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_management/bindings/routes.dart';
 import 'package:sales_management/constant/color.dart';
+import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/size_extension.dart';
 import 'package:sales_management/gen/assets.gen.dart';
 import 'package:sales_management/models/inventory_model.dart';
 import 'package:sales_management/provider/inventory_provider.dart';
+import 'package:sales_management/screens/inventory/component/delete_product_popup.dart';
+import 'package:sales_management/screens/inventory/component/item_widget.dart';
 import 'package:sales_management/utils/popup_menu.dart';
 import 'package:sales_management/utils/app_text.dart';
 import 'package:sales_management/utils/text_button.dart';
@@ -71,178 +74,231 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           children: List.generate(provider.inventoryList.length,
                               (index) {
                             final inv = provider.inventoryList[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                        color: ColorPalette.green,
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                            return inv.data.isEmpty
+                                ? const SizedBox.shrink()
+                                : Container(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    child: Column(
                                       children: [
-                                        appText(
-                                            textColor: ColorPalette.white,
-                                            context: context,
-                                            title: DateFormat('dd MMMM yyyy')
-                                                    .format(DateTime(
-                                                        int.parse(inv
-                                                            .addingDate!
-                                                            .split('-')[0]),
-                                                        int.parse(inv
-                                                            .addingDate!
-                                                            .split('-')[1]),
-                                                        int.parse(inv
-                                                            .addingDate!
-                                                            .split('-')[2]))) ??
-                                                '',
-                                            fontSize: 16),
-                                        // appText(
-                                        //     textColor: ColorPalette.white,
-                                        //     context: context,
-                                        //     title: 'PKR: ${inv.totalprice}',
-                                        //     fontSize: 16)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                              color: ColorPalette.green,
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              appText(
+                                                  textColor: ColorPalette.white,
+                                                  context: context,
+                                                  title: DateFormat('dd MMMM yyyy')
+                                                          .format(DateTime(
+                                                              int.parse(inv
+                                                                  .addingDate!
+                                                                  .split(
+                                                                      '-')[0]),
+                                                              int.parse(inv
+                                                                  .addingDate!
+                                                                  .split(
+                                                                      '-')[1]),
+                                                              int.parse(inv
+                                                                  .addingDate!
+                                                                  .split(
+                                                                      '-')[2]))) ??
+                                                      '',
+                                                  fontSize: 16),
+
+                                              // appText(
+                                              //     textColor: ColorPalette.white,
+                                              //     context: context,
+                                              //     title: 'PKR: ${inv.totalprice}',
+                                              //     fontSize: 16)
+                                            ],
+                                          ),
+                                        ),
+                                        context.heightBox(0.005),
+                                        SingleChildScrollView(
+                                          physics:
+                                              const BouncingScrollPhysics(),
+                                          scrollDirection: Axis.horizontal,
+                                          child: DataTable(
+                                            border: TableBorder.all(
+                                                color: ColorPalette.black
+                                                    .withOpacity(0.2)),
+                                            columns: [
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Name')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Stock')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Quantity')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Product Price')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Last Sale')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Last Purchase')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Description')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      fontSize: 14,
+                                                      context: context,
+                                                      title: 'Remove')),
+                                            ],
+                                            rows: inv.data.map((item) {
+                                              return DataRow(
+                                                  color: MaterialStateProperty
+                                                      .resolveWith<Color?>(
+                                                    (Set<MaterialState>
+                                                        states) {
+                                                      int quantity = int.parse(
+                                                          item.quantity ?? '0');
+                                                      if (quantity < 10 &&
+                                                          quantity > 0) {
+                                                        return ColorPalette
+                                                            .amber
+                                                            .withOpacity(
+                                                                0.2); // Light red for low quantity
+                                                      } else if (quantity <=
+                                                          0) {
+                                                        return ColorPalette.red
+                                                            .withOpacity(0.3);
+                                                      }
+                                                      return null; // Default row color
+                                                    },
+                                                  ),
+                                                  cells: [
+                                                    DataCell(Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: appText(
+                                                            context: context,
+                                                            title: item.title ??
+                                                                '',
+                                                            fontSize: 14))),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.stock ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.quantity ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.productprice ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.lastSale ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.lastPurchase ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(
+                                                      Center(
+                                                          child: appText(
+                                                              maxLine: 10,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              context: context,
+                                                              title:
+                                                                  item.desc ??
+                                                                      '',
+                                                              fontSize: 14)),
+                                                    ),
+                                                    DataCell(Center(
+                                                        child:
+                                                            deleteProductPopup(
+                                                      context: context,
+                                                      title: item.title ?? '',
+                                                      onPressed: () {
+                                                        DatabaseHelper
+                                                                .deleteInventoryItem(
+                                                                    item.id ??
+                                                                        0)
+                                                            .then((v) {
+                                                          provider
+                                                              .getInventoryData();
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        });
+                                                      },
+                                                    ))),
+                                                  ]);
+                                            }).toList(),
+                                          ),
+                                        )
                                       ],
                                     ),
-                                  ),
-                                  context.heightBox(0.005),
-                                  Column(
-                                    children: List.generate(inv.data.length,
-                                        (index2) {
-                                      InventoryItem item = inv.data[index2];
-                                      print(item.lastPurchase);
-                                      return Container(
-                                        padding: const EdgeInsets.all(20),
-                                        margin:
-                                            const EdgeInsets.only(bottom: 10),
-                                        decoration: BoxDecoration(
-                                            color: ColorPalette.white,
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: ColorPalette.black
-                                                      .withOpacity(0.2),
-                                                  offset: const Offset(0, 5),
-                                                  blurRadius: 5)
-                                            ]),
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Product Title',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: item.title ?? "",
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Stock',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: item.quantity ?? '',
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Measurment Unit',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: item.stock ?? "",
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Product Price',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: 'PKR: ' +
-                                                        " ${item.productprice ?? ""}",
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Last Purchase',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: 'PKR: ' +
-                                                        "${item.lastPurchase ?? ''}",
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                appText(
-                                                    context: context,
-                                                    title: 'Last Sale',
-                                                    fontSize: 15),
-                                                appText(
-                                                    context: context,
-                                                    title: 'PKR: ' +
-                                                        "${item.lastSale ?? ''}",
-                                                    fontSize: 15),
-                                              ],
-                                            ),
-                                            context.heightBox(0.01),
-                                            appText(
-                                                context: context,
-                                                title: 'Description'),
-                                            appText(
-                                                textAlign: TextAlign.left,
-                                                context: context,
-                                                title: "${item.desc ?? ''}",
-                                                fontSize: 15),
-                                          ],
-                                        ),
-                                      );
-                                    }),
-                                  ),
-                                ],
-                              ),
-                            );
+                                  );
                           }),
                         )
                       : Column(

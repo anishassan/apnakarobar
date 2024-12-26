@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
@@ -234,6 +235,48 @@ class _AddNewItemState extends State<AddNewItem> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                   children: [
+                    context.heightBox(0.01),
+                    GestureDetector(
+                      onTap: () async {
+                        DateTime? date = await showDatePicker(
+                            context: context,
+                            firstDate: DateTime(1991),
+                            lastDate: DateTime.now());
+                        if (date != null) {
+                          provider.changePickedDate(date);
+                        }
+                      },
+                      child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          decoration: BoxDecoration(
+                              color: ColorPalette.green,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                boxShadow(
+                                    context: context,
+                                    blur: 5,
+                                    y: 5,
+                                    color: ColorPalette.black,
+                                    opacity: 0.2)
+                              ]),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Icon(
+                                Icons.date_range,
+                                color: ColorPalette.white,
+                              ),
+                              appText(
+                                  context: context,
+                                  title: DateFormat('yyyy-MM-dd')
+                                      .format(provider.pickedDate),
+                                  textColor: ColorPalette.white,
+                                  fontSize: 16),
+                            ],
+                          )),
+                    ),
+                    context.heightBox(0.01),
                     addNewProductExpandedTile(
                         icon: Assets.svg.box,
                         onTap: () {
@@ -336,41 +379,50 @@ class _AddNewItemState extends State<AddNewItem> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  SizedBox(
-                                    width: context.getSize.width * 0.22,
-                                    child: appText(
-                                        textAlign: TextAlign.center,
-                                        context: context,
-                                        title: 'Product',
-                                        fontSize: 13),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      SizedBox(
+                                        width: context.getSize.width * 0.2,
+                                        child: appText(
+                                            textAlign: TextAlign.center,
+                                            context: context,
+                                            title: 'Product',
+                                            fontSize: 13),
+                                      ),
+                                      SizedBox(
+                                        width: context.getSize.width * 0.19,
+                                        child: appText(
+                                            textAlign: TextAlign.center,
+                                            context: context,
+                                            title: "Unit Price",
+                                            fontSize: 13),
+                                      ),
+                                      SizedBox(
+                                        width: context.getSize.width * 0.18,
+                                        child: appText(
+                                            textAlign: TextAlign.center,
+                                            context: context,
+                                            title: "Quantity",
+                                            fontSize: 13),
+                                      ),
+                                      SizedBox(
+                                        width: context.getSize.width * 0.19,
+                                        child: appText(
+                                            textAlign: TextAlign.center,
+                                            context: context,
+                                            title: "Total Price",
+                                            fontSize: 13),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(
-                                    width: context.getSize.width * 0.2,
-                                    child: appText(
-                                        textAlign: TextAlign.center,
-                                        context: context,
-                                        title: "Unit Price",
-                                        fontSize: 13),
-                                  ),
-                                  SizedBox(
-                                    width: context.getSize.width * 0.2,
-                                    child: appText(
-                                        textAlign: TextAlign.center,
-                                        context: context,
-                                        title: "Quantity",
-                                        fontSize: 13),
-                                  ),
-                                  SizedBox(
-                                    width: context.getSize.width * 0.2,
-                                    child: appText(
-                                        textAlign: TextAlign.center,
-                                        context: context,
-                                        title: "Total Price",
-                                        fontSize: 13),
-                                  ),
+                                  context.widthBox(0.01),
+                                  const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  )
                                 ],
                               ),
                               context.heightBox(0.01),
@@ -385,48 +437,66 @@ class _AddNewItemState extends State<AddNewItem> {
                                       ? provider.salesItems[index]
                                       : provider.purchaseItems[index];
                                   return Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      SizedBox(
-                                        width: context.getSize.width * 0.22,
-                                        child: appText(
-                                            textAlign: TextAlign.center,
-                                            maxLine: 2,
-                                            context: context,
-                                            title: item.title ?? "",
-                                            fontSize: 13),
-                                      ),
-                                      SizedBox(
-                                        width: context.getSize.width * 0.2,
-                                        child: appText(
-                                            textAlign: TextAlign.center,
-                                            context: context,
-                                            title: (item.productprice
-                                                        .toString() +
-                                                    '/' +
-                                                    item.stock.toString()) ??
-                                                '',
-                                            fontSize: 13),
-                                      ),
-                                      SizedBox(
-                                          width: context.getSize.width * 0.2,
-                                          child: Center(
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            width: context.getSize.width * 0.2,
+                                            child: appText(
+                                                textAlign: TextAlign.center,
+                                                maxLine: 2,
+                                                context: context,
+                                                title: item.title ?? "",
+                                                fontSize: 13),
+                                          ),
+                                          SizedBox(
+                                            width: context.getSize.width * 0.19,
                                             child: appText(
                                                 textAlign: TextAlign.center,
                                                 context: context,
-                                                title:
-                                                    item.buySaleQuantity ?? '',
+                                                title: (item.productprice
+                                                            .toString() +
+                                                        '/' +
+                                                        item.stock
+                                                            .toString()) ??
+                                                    '',
                                                 fontSize: 13),
-                                          )),
-                                      SizedBox(
-                                        width: context.getSize.width * 0.2,
-                                        child: appText(
-                                            textAlign: TextAlign.center,
-                                            context: context,
-                                            title: item.totalprice ?? '',
-                                            fontSize: 13),
+                                          ),
+                                          SizedBox(
+                                              width:
+                                                  context.getSize.width * 0.18,
+                                              child: Center(
+                                                child: appText(
+                                                    textAlign: TextAlign.center,
+                                                    context: context,
+                                                    title:
+                                                        item.buySaleQuantity ??
+                                                            '',
+                                                    fontSize: 13),
+                                              )),
+                                          SizedBox(
+                                            width: context.getSize.width * 0.19,
+                                            child: appText(
+                                                textAlign: TextAlign.center,
+                                                context: context,
+                                                title: item.totalprice ?? '',
+                                                fontSize: 13),
+                                          ),
+                                        ],
                                       ),
+                                      context.widthBox(0.01),
+                                      GestureDetector(
+                                        onTap: () {
+                                          provider.removeItem(
+                                              index, widget.type);
+                                        },
+                                        child: Icon(
+                                          Icons.close,
+                                          color: Colors.red,
+                                        ),
+                                      )
                                     ],
                                   );
                                 }),

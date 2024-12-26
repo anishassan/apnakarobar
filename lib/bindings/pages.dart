@@ -3,6 +3,7 @@ import 'package:sales_management/bindings/routes.dart';
 import 'package:sales_management/models/sales_model.dart';
 import 'package:sales_management/screens/add_product/add_product_screen.dart';
 import 'package:sales_management/screens/add_product/component/add_new_item.dart';
+import 'package:sales_management/screens/customer_supplier_detail/customer_supplier_detail_screen.dart';
 import 'package:sales_management/screens/dashboard/dashbaord_screen.dart';
 import 'package:sales_management/screens/detail/detail_screen.dart';
 import 'package:sales_management/screens/register/register_screen.dart';
@@ -57,6 +58,18 @@ class Pages {
           return DetailScreen(
             
             model: model,
+            type: type,
+          );
+        });
+      case Routes.customersupplierdetail:
+        return MaterialPageRoute(builder: (context) {
+          final arguments = settings.arguments as List;
+        int type = arguments[0] as int;
+        Datum data = arguments[1] as Datum;
+
+          return CustomerSupplierDetailScreen(
+            data: data,
+            
             type: type,
           );
         });

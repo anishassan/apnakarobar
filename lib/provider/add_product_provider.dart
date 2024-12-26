@@ -23,6 +23,7 @@ class AddProductProvider extends ChangeNotifier {
   TextEditingController lastSale = TextEditingController();
   TextEditingController lastPurchase = TextEditingController();
   TextEditingController description = TextEditingController();
+
 //Sales and purchase
   TextEditingController name = TextEditingController();
   TextEditingController phone = TextEditingController();
@@ -75,6 +76,23 @@ class AddProductProvider extends ChangeNotifier {
   List<InventoryItem> get purchaseItems => _purchaseItems;
   bool _isInsert = false;
   bool get isInsert => _isInsert;
+  removeItem(int index, int type) {
+    if (type == 1) {
+      _completePrice =
+          _completePrice - double.parse(_salesItems[index].totalprice ?? "0.0");
+      _remainingBalance = _remainingBalance -
+          double.parse(_salesItems[index].totalprice ?? "0.0");
+      _salesItems.removeAt(index);
+    } else {
+      _completePrice = _completePrice -
+          double.parse(_purchaseItems[index].totalprice ?? "0.0");
+      _remainingBalance = _remainingBalance -
+          double.parse(_purchaseItems[index].totalprice ?? "0.0");
+      _purchaseItems.removeAt(index);
+    }
+    notifyListeners();
+  }
+
   toggleInsert(bool val) {
     _isInsert = val;
     notifyListeners();
@@ -199,6 +217,7 @@ class AddProductProvider extends ChangeNotifier {
     _inventoryList.clear();
     _salesItems.clear();
     _purchaseItems.clear();
+    changePickedDate(DateTime.now());
   }
 
   Future addInventoryProduct(
@@ -301,18 +320,17 @@ class AddProductProvider extends ChangeNotifier {
       toast(msg: 'Please Enter Customer Phone Number.', context: context);
     } else {
       bool isSuccess = await DatabaseHelper().addSalesData(SalesModel(
-        soldDate: DateFormat('yyyy-MM-dd')
-            .format(DateTime.now()),
+        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
         data: [
           Datum(
             contact: phone.text,
             customerId: selectedId.text.isEmpty
-                ? DateTime.now().millisecondsSinceEpoch
+                ? _pickedDate.millisecondsSinceEpoch
                 : int.parse(selectedId.text),
             name: name.text,
-            remainigBalance: remainingBalance.toString(),
+            remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
-                ? remainingBalance.toString()
+                ? '0.0'
                 : payment.text,
             soldProducts: data.toList(),
           )
@@ -340,17 +358,17 @@ class AddProductProvider extends ChangeNotifier {
       print(name.text);
       print(phone.text);
       bool isSuccess = await DatabaseHelper().addPurchaseData(SalesModel(
-        soldDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
         data: [
           Datum(
             name: name.text,
             contact: phone.text,
             customerId: selectedId.text.isEmpty
-                ? DateTime.now().millisecondsSinceEpoch
+                ? _pickedDate.millisecondsSinceEpoch
                 : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
-                ? remainingBalance.toString()
+                ? '0.0'
                 : payment.text,
             soldProducts: data,
           ),
@@ -414,6 +432,13 @@ class AddProductProvider extends ChangeNotifier {
         }
       }
     }
+    notifyListeners();
+  }
+
+  DateTime _pickedDate = DateTime.now();
+  DateTime get pickedDate => _pickedDate;
+  changePickedDate(DateTime date) {
+    _pickedDate = date;
     notifyListeners();
   }
 }

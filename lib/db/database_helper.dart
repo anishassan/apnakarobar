@@ -16,7 +16,7 @@ class DatabaseHelper {
   static const String _sales = 'sales';
   static const _customer = 'customer';
   static const String _purchase = 'purchase';
-  static const String _path = 'kk.db';
+  static const String _path = 'kddddk.db';
   static const String _soldProducts = 'soldProducts';
 
   // Initialize the database

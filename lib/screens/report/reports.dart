@@ -543,11 +543,17 @@ class _ReportsState extends State<Reports> {
                             children: [
                               Expanded(
                                 child: Center(
-                                    child: appText(
-                                        fontSize: 12,
-                                        context: context,
-                                        title:
-                                            'Total Sales &\nPayment Recieved')),
+                                    child: widget.type == 1
+                                        ? appText(
+                                            fontSize: 12,
+                                            context: context,
+                                            maxLine: 2,
+                                            title: 'tppr')
+                                        : appText(
+                                            fontSize: 12,
+                                            context: context,
+                                            maxLine: 2,
+                                            title: 'tspr')),
                               ),
                               Expanded(
                                 child: Center(

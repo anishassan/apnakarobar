@@ -120,7 +120,7 @@ class InventoryProvider extends ChangeNotifier {
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity);
+      totalProducts += int.parse(x.quantity??'0');
     }
     return (totalProducts + int.parse(quantity)).toString();
   }
@@ -131,7 +131,7 @@ class InventoryProvider extends ChangeNotifier {
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity);
+      totalProducts += int.parse(x.quantity??'0');
     }
     return totalProducts.toString();
   }

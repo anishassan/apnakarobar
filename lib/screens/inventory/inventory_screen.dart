@@ -14,6 +14,7 @@ import 'package:sales_management/models/inventory_model.dart';
 import 'package:sales_management/provider/inventory_provider.dart';
 import 'package:sales_management/screens/inventory/component/delete_product_popup.dart';
 import 'package:sales_management/screens/inventory/component/item_widget.dart';
+import 'package:sales_management/utils/date_formatter.dart';
 import 'package:sales_management/utils/popup_menu.dart';
 import 'package:sales_management/utils/app_text.dart';
 import 'package:sales_management/utils/text_button.dart';
@@ -91,31 +92,37 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              appText(
-                                                  textColor: ColorPalette.white,
-                                                  context: context,
-                                                  title: DateFormat('dd MMMM yyyy')
-                                                          .format(DateTime(
-                                                              int.parse(inv
-                                                                  .addingDate!
-                                                                  .split(
-                                                                      '-')[0]),
-                                                              int.parse(inv
-                                                                  .addingDate!
-                                                                  .split(
-                                                                      '-')[1]),
-                                                              int.parse(inv
-                                                                  .addingDate!
-                                                                  .split(
-                                                                      '-')[2]))) ??
-                                                      '',
-                                                  fontSize: 16),
-
-                                              // appText(
-                                              //     textColor: ColorPalette.white,
-                                              //     context: context,
-                                              //     title: 'PKR: ${inv.totalprice}',
-                                              //     fontSize: 16)
+                                              Row(
+                                                children: [
+                                                  appText(
+                                                      textColor:
+                                                          ColorPalette.white,
+                                                      context: context,
+                                                      title: dateFormatter('dd',
+                                                              inv.addingDate) +
+                                                          ' ',
+                                                      fontSize: 16),
+                                                  appText(
+                                                      textColor:
+                                                          ColorPalette.white,
+                                                      context: context,
+                                                      title: dateFormatter(
+                                                              'MMMM',
+                                                              inv.addingDate) ??
+                                                          '',
+                                                      fontSize: 16),
+                                                  appText(
+                                                      textColor:
+                                                          ColorPalette.white,
+                                                      context: context,
+                                                      title: ' ' +
+                                                              dateFormatter(
+                                                                  'yyyy',
+                                                                  inv.addingDate) ??
+                                                          '',
+                                                      fontSize: 16),
+                                                ],
+                                              )
                                             ],
                                           ),
                                         ),
@@ -125,15 +132,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                               const BouncingScrollPhysics(),
                                           scrollDirection: Axis.horizontal,
                                           child: DataTable(
+                                            dataRowHeight:
+                                                context.getSize.height * 0.05,
                                             border: TableBorder.all(
                                                 color: ColorPalette.black
                                                     .withOpacity(0.2)),
                                             columns: [
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign: TextAlign.left,
                                                       fontSize: 14,
                                                       context: context,
-                                                      title: 'Name')),
+                                                      title: 'Product Title')),
                                               DataColumn(
                                                   label: appText(
                                                       fontSize: 14,
@@ -141,31 +151,42 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                       title: 'Stock')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign: TextAlign.left,
                                                       fontSize: 14,
                                                       context: context,
                                                       title: 'Quantity')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       fontSize: 14,
                                                       context: context,
-                                                      title: 'Product Price')),
+                                                      title: 'Unit Price')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       fontSize: 14,
                                                       context: context,
                                                       title: 'Last Sale')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       fontSize: 14,
                                                       context: context,
                                                       title: 'Last Purchase')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       fontSize: 14,
                                                       context: context,
                                                       title: 'Description')),
                                               DataColumn(
                                                   label: appText(
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       fontSize: 14,
                                                       context: context,
                                                       title: 'Remove')),
@@ -176,8 +197,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                       .resolveWith<Color?>(
                                                     (Set<MaterialState>
                                                         states) {
-                                                      int quantity = int.parse(
-                                                          item.quantity ?? '0');
+                                                      int quantity = item
+                                                                  .quantity ==
+                                                              ""
+                                                          ? 0
+                                                          : int.parse(
+                                                              item.quantity);
                                                       if (quantity < 10 &&
                                                           quantity > 0) {
                                                         return ColorPalette
@@ -220,9 +245,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                   TextAlign
                                                                       .center,
                                                               context: context,
-                                                              title:
-                                                                  item.quantity ??
-                                                                      '',
+                                                              title: item.quantity ==
+                                                                          '0' ||
+                                                                      item.quantity ==
+                                                                          ''
+                                                                  ? ''
+                                                                  : item
+                                                                      .quantity,
                                                               fontSize: 14)),
                                                     ),
                                                     DataCell(
@@ -232,9 +261,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                   TextAlign
                                                                       .center,
                                                               context: context,
-                                                              title:
-                                                                  item.productprice ??
-                                                                      '',
+                                                              title: item.productprice ==
+                                                                      ""
+                                                                  ? '0.00'
+                                                                  : double.parse(
+                                                                          item.productprice ??
+                                                                              '0.0')
+                                                                      .toStringAsFixed(
+                                                                          2),
                                                               fontSize: 14)),
                                                     ),
                                                     DataCell(
@@ -244,9 +278,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                   TextAlign
                                                                       .center,
                                                               context: context,
-                                                              title:
-                                                                  item.lastSale ??
-                                                                      '',
+                                                              title: item.lastSale ==
+                                                                      ""
+                                                                  ? '0.00'
+                                                                  : double.parse(
+                                                                          item.lastSale ??
+                                                                              '0.0')
+                                                                      .toStringAsFixed(
+                                                                          2),
                                                               fontSize: 14)),
                                                     ),
                                                     DataCell(
@@ -256,9 +295,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                   TextAlign
                                                                       .center,
                                                               context: context,
-                                                              title:
-                                                                  item.lastPurchase ??
-                                                                      '',
+                                                              title: item.lastPurchase ==
+                                                                      ""
+                                                                  ? '0.00'
+                                                                  : double.parse(
+                                                                          item.lastPurchase ??
+                                                                              '0.0')
+                                                                      .toStringAsFixed(
+                                                                          2),
                                                               fontSize: 14)),
                                                     ),
                                                     DataCell(

@@ -53,7 +53,9 @@ class DetailScreen extends StatelessWidget {
                         appText(
                             context: context,
                             title: type == 1 ? 'Contact' : 'Contact'),
-                        appText(context: context, title: model.contact ?? ''),
+                        appText(
+                            context: context,
+                            title: '+92' + (model.contact ?? '')),
                       ],
                     ),
                     Row(

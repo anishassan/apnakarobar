@@ -131,7 +131,7 @@ for(var v in data){
     print("Quantities ${data.soldProducts!.length}");
     for (InventoryItem p in data.soldProducts ?? []) {
       totalLastSale +=
-          double.parse(p.productprice ?? '0.0') * int.parse(p.quantity);
+          double.parse(p.productprice ?? '0.0') * int.parse(p.quantity??'0');
     }
     return totalLastSale.toString();
   }
@@ -221,7 +221,7 @@ for(var v in data){
               productDate.isBefore(rangeEnd.add(Duration(days: 1)))) {
             filteredProducts.add(product);
             totalValue += double.parse(product.productprice ?? '0.0') *
-                int.parse(product.quantity);
+                int.parse(product.quantity??'0');
             print('Total Value ${totalValue}');
           }
         }

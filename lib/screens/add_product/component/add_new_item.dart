@@ -305,10 +305,9 @@ class _AddNewItemState extends State<AddNewItem> {
                                 provider.selectedId.text =
                                     val.customerId.toString();
                                 provider.name.text = val.name ?? "";
-                                phoneCont.text =
-                                    val.contact?.substring(3, 13) ?? "";
+                               
                                 provider.phone.text =
-                                    val.contact?.substring(3, 13) ?? "";
+                                    val.contact??'';
                                 // print(provider.phone.text);
                               }),
                           context.heightBox(0.01),
@@ -337,7 +336,7 @@ class _AddNewItemState extends State<AddNewItem> {
                           phoneField(
                               onChangePhone: (val) {
                                 if (val != null) {
-                                  provider.phone.text = val.phoneNumber!;
+                                
                                   provider.selectedId.text = DateTime.now()
                                       .millisecondsSinceEpoch
                                       .toString();
@@ -346,7 +345,7 @@ class _AddNewItemState extends State<AddNewItem> {
                               },
                               context: context,
                               textInputType: TextInputType.number,
-                              controller: phoneCont,
+                              controller: provider.phone,
                               hintText: 'Contact Number',
                               initialValue: PhoneNumber(isoCode: 'PK'))
                         ],

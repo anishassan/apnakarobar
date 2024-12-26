@@ -110,13 +110,23 @@ class AddProductProvider extends ChangeNotifier {
         _productItems.insert(
             0,
             ItemModel(
-              lastPurchase: lastPurchase.text,
-              lastSale: lastSale.text,
+              lastPurchase: lastPurchase.text.isEmpty || lastPurchase.text == ''
+                  ? '0.00'
+                  : lastPurchase.text,
+              lastSale: lastSale.text.isEmpty || lastSale.text == ""
+                  ? '0.00'
+                  : lastSale.text,
               desc: description.text,
               title: title.text,
-              productprice: productprice.text,
-              quantity: quantity.text,
-              totalprice: totalprice.text,
+              productprice: productprice.text.isEmpty || productprice.text == ""
+                  ? '0.00'
+                  : productprice.text,
+              quantity: quantity.text.isEmpty || quantity.text == ""
+                  ? "0"
+                  : quantity.text,
+              totalprice: totalprice.text.isEmpty || totalprice.text == ""
+                  ? '0.00'
+                  : totalprice.text,
               stock: unitVal.text + ' ' + _selectedUnit,
               date: DateFormat('dd-MM-yyyy').format(DateTime.now()),
             ));
@@ -132,12 +142,21 @@ class AddProductProvider extends ChangeNotifier {
         toast(msg: 'Do not have enough quantity', context: context);
       } else {
         final d = item.copyWith(
-            lastSale: item.lastSale,
-            lastPurchase: item.lastPurchase,
-            buySaleQuantity: quantity.text,
-            quantity: quantity.text,
-            productprice: productprice.text,
-            totalprice: totalprice.text);
+          lastSale: item.lastSale == "" ? '0.00' : item.lastSale,
+          lastPurchase: item.lastPurchase == "" ? '0.00' : item.lastPurchase,
+          buySaleQuantity: quantity.text.isEmpty || quantity.text == ""
+              ? "0"
+              : quantity.text,
+          quantity: quantity.text.isEmpty || quantity.text == ""
+              ? "0"
+              : quantity.text,
+          productprice: productprice.text.isEmpty || productprice.text == ""
+              ? '0.00'
+              : productprice.text,
+          totalprice: totalprice.text.isEmpty || totalprice.text == ""
+              ? '0.00'
+              : totalprice.text,
+        );
         _salesItems.insert(0, d);
         toggleInsert(true);
         _remainingBalance += double.parse(totalprice.text);
@@ -153,17 +172,25 @@ class AddProductProvider extends ChangeNotifier {
         toast(msg: 'Please select product first.', context: context);
       } else {
         final d = item.copyWith(
-            lastSale:
-                (int.parse(quantity.text) * double.parse(productprice.text))
-                    .toString(),
-            buySaleQuantity: quantity.text,
-            lastPurchase: lastPurchase.text,
-            quantity: item.quantity == null || item.quantity == ""
-                ? quantity.text
-                : (int.parse(item.quantity ?? '0') + int.parse(quantity.text))
-                    .toString(),
-            productprice: productprice.text,
-            totalprice: totalprice.text);
+          lastSale: (int.parse(quantity.text) * double.parse(productprice.text))
+              .toString(),
+          buySaleQuantity: quantity.text.isEmpty || quantity.text == ""
+              ? '0'
+              : quantity.text,
+          lastPurchase: lastPurchase.text.isEmpty || lastPurchase.text == ""
+              ? '0.00'
+              : lastPurchase.text,
+          quantity: item.quantity.isEmpty || item.quantity == ""
+              ? quantity.text
+              : (int.parse(item.quantity ?? '0') + int.parse(quantity.text))
+                  .toString(),
+          productprice: productprice.text.isEmpty || productprice.text == ""
+              ? '0.00'
+              : productprice.text,
+          totalprice: totalprice.text.isEmpty || totalprice.text == ""
+              ? '0.00'
+              : totalprice.text,
+        );
         _purchaseItems.insert(0, d);
         toggleInsert(true);
         _remainingBalance += double.parse(totalprice.text);
@@ -439,6 +466,11 @@ class AddProductProvider extends ChangeNotifier {
   DateTime get pickedDate => _pickedDate;
   changePickedDate(DateTime date) {
     _pickedDate = date;
+    notifyListeners();
+  }
+
+  removeInventoryItem(index) {
+    _productItems.removeAt(index);
     notifyListeners();
   }
 }

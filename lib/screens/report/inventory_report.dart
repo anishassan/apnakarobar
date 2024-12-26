@@ -79,22 +79,26 @@ class _InventoryReportState extends State<InventoryReport> {
                                   appText(
                                     fontSize: 12,
                                     context: context,
-                                    title: 'Remainig Stock & Value',
+                                    title: 'rsv',
                                   ),
                                   appText(
                                     fontSize: 13,
                                     context: context,
-                                    title:
-                                        "${item.quantity ?? '0'}${item.stock}",
+                                    title: item.quantity == ""
+                                        ? ""
+                                        : "${item.quantity ?? '0'}${item.stock}",
                                   ),
                                   appText(
                                     fontSize: 13,
                                     context: context,
-                                    title: 'PKR ' +
-                                        (int.parse(item.quantity ?? '0') *
-                                                double.parse(
-                                                    item.productprice ?? '0.0'))
-                                            .toString(),
+                                    title: item.quantity == ""
+                                        ? ""
+                                        : 'PKR ' +
+                                            (int.parse(item.quantity ?? '0') *
+                                                    double.parse(
+                                                        item.productprice ??
+                                                            '0.0'))
+                                                .toString(),
                                   )
                                 ],
                               ),

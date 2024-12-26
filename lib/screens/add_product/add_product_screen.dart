@@ -131,100 +131,131 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         final item = provider.productItems[index];
                         bool isTrue = provider.selecteditemIndexList
                             .any((e) => e == index);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Checkbox.adaptive(
-                                  value: isTrue,
-                                  onChanged: (val) {
-                                    provider.addSelectedItemIndex(index);
-                                  }),
-                              Expanded(
-                                child: Column(
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        appText(
-                                            context: context,
-                                            title: item.title ?? ''),
-                                        if (isTrue)
+                                    Checkbox.adaptive(
+                                        value: isTrue,
+                                        onChanged: (val) {
+                                          provider.addSelectedItemIndex(index);
+                                        }),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              appText(
+                                                  context: context,
+                                                  title: item.title ?? ''),
+                                              if (isTrue)
+                                                appText(
+                                                    context: context,
+                                                    title:
+                                                        'Rs: ${item.totalprice ?? ''}/-' ??
+                                                            ''),
+                                            ],
+                                          ),
                                           appText(
                                               context: context,
                                               title:
-                                                  'Rs: ${item.totalprice ?? ''}/-' ??
-                                                      ''),
-                                      ],
-                                    ),
-                                    appText(
-                                        context: context,
-                                        title: 'Stock ${item.stock ?? ''}',
-                                        fontSize: 10),
-                                    context.heightBox(0.005),
-                                    if (isTrue)
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          SizedBox(
-                                            width: context.getSize.width * 0.3,
-                                            child: centerTextField(
-                                                onChange: (val) {
-                                                  if (val == null) {
-                                                  } else {
-                                                    String price = (double
-                                                                .parse(val ??
-                                                                    '0.0') *
-                                                            double.parse(
-                                                                item.productprice ??
-                                                                    '0.0'))
-                                                        .toString();
+                                                  'Stock ${item.stock ?? ''}',
+                                              fontSize: 10),
+                                          context.heightBox(0.005),
+                                          if (isTrue)
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                SizedBox(
+                                                  width: context.getSize.width *
+                                                      0.3,
+                                                  child: centerTextField(
+                                                      onChange: (val) {
+                                                        if (val == null) {
+                                                        } else {
+                                                          String price = (double
+                                                                      .parse(val ??
+                                                                          '0.0') *
+                                                                  double.parse(
+                                                                      item.productprice ??
+                                                                          '0.0'))
+                                                              .toString();
 
-                                                    provider.replaceModel(
-                                                        type: widget.type,
-                                                        model: ItemModel(
-                                                          productprice:
-                                                              item.productprice,
-                                                          date: item.date,
-                                                          id: item.id,
-                                                          quantity: val,
-                                                          totalprice: price,
-                                                          title: item.title,
-                                                          stock: item.stock,
-                                                        ),
-                                                        index: index);
-                                                  }
-                                                },
-                                                textInputType:
-                                                    TextInputType.number,
-                                                context: context,
-                                                controller:
-                                                    TextEditingController(),
-                                                hintText:
-                                                    '|QTY-${item.quantity ?? ''}'),
-                                          ),
-                                          SizedBox(
-                                              width:
-                                                  context.getSize.width * 0.3,
-                                              child: textButton(
-                                                  bgColor: ColorPalette.green
-                                                      .withOpacity(0.5),
-                                                  context: context,
-                                                  onTap: () {},
-                                                  title:
-                                                      'Rate: ${item.productprice}',
-                                                  radius: 4)),
+                                                          provider.replaceModel(
+                                                              type: widget.type,
+                                                              model: ItemModel(
+                                                                productprice: item
+                                                                    .productprice,
+                                                                date: item.date,
+                                                                id: item.id,
+                                                                quantity: val,
+                                                                totalprice:
+                                                                    price,
+                                                                title:
+                                                                    item.title,
+                                                                stock:
+                                                                    item.stock,
+                                                              ),
+                                                              index: index);
+                                                        }
+                                                      },
+                                                      textInputType:
+                                                          TextInputType.number,
+                                                      context: context,
+                                                      controller:
+                                                          TextEditingController(),
+                                                      hintText:
+                                                          '|QTY-${item.quantity ?? ''}'),
+                                                ),
+                                                SizedBox(
+                                                    width:
+                                                        context.getSize.width *
+                                                            0.3,
+                                                    child: textButton(
+                                                        bgColor: ColorPalette
+                                                            .green
+                                                            .withOpacity(0.5),
+                                                        context: context,
+                                                        onTap: () {},
+                                                        title:
+                                                            'Rate: ${item.productprice}',
+                                                        radius: 4)),
+                                              ],
+                                            )
                                         ],
-                                      )
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            context.widthBox(0.01),
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: const BoxDecoration(
+                                  color: ColorPalette.green,
+                                  shape: BoxShape.circle),
+                              child: GestureDetector(
+                                onTap: () {
+                                  provider.removeInventoryItem(index);
+                                },
+                                child: const Icon(
+                                  Icons.close,
+                                  color: ColorPalette.white,
+                                ),
+                              ),
+                            )
+                          ],
                         );
                       })
                 ],

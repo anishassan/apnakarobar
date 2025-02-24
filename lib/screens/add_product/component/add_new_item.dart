@@ -13,6 +13,7 @@ import 'package:sales_management/provider/add_product_provider.dart';
 import 'package:sales_management/provider/dashboard_provider.dart';
 import 'package:sales_management/utils/app_text.dart';
 import 'package:sales_management/utils/box_shadow.dart';
+import 'package:sales_management/utils/expanded_tile.dart';
 import 'package:sales_management/utils/popup_menu.dart';
 import 'package:sales_management/utils/text_button.dart';
 import 'package:sales_management/utils/text_field.dart';
@@ -104,30 +105,32 @@ class _AddNewItemState extends State<AddNewItem> {
                         controller: provider.title,
                         hintText: 'Product Title'),
                     context.heightBox(0.01),
-
-                    // Expanded(
-                    //     child: textField(
-                    //         textInputType: TextInputType.number,
-                    //         context: context,
-                    //         controller: provider.unitVal,
-                    //         hintText:
-                    //             'Measurement in ${provider.selectedUnit}')),
-                    // context.widthBox(0.01),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: popupMenu(
-                            context: context,
-                            dataList: provider.unitsList,
-                            selectedItem: provider.selectedUnit,
-                            onSelect: (val) {
-                              provider.selectNewUnit(val);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-
+                    textField(
+                        suffixIcon: GestureDetector(
+                            child: Icon(
+                          provider.showUnits
+                              ? Icons.arrow_drop_up
+                              : Icons.arrow_drop_down,
+                          color: ColorPalette.white,
+                        )),
+                        hintColor: ColorPalette.white,
+                        bgColor: ColorPalette.green,
+                        readOnly: true,
+                        onTap: () {
+                          provider.toggleShowUnit();
+                        },
+                        context: context,
+                        controller: TextEditingController(),
+                        hintText: provider.selectedUnit),
+                    if (provider.showUnits) context.heightBox(0.01),
+                    if (provider.showUnits)
+                      expandedTile(
+                          context: context,
+                          dataList: provider.unitsList,
+                          onTap: (val) {
+                            provider.selectNewUnit(val);
+                            provider.toggleShowUnit();
+                          }),
                     context.heightBox(0.01),
                     Row(
                       children: [
@@ -305,9 +308,8 @@ class _AddNewItemState extends State<AddNewItem> {
                                 provider.selectedId.text =
                                     val.customerId.toString();
                                 provider.name.text = val.name ?? "";
-                               
-                                provider.phone.text =
-                                    val.contact??'';
+
+                                provider.phone.text = val.contact ?? '';
                                 // print(provider.phone.text);
                               }),
                           context.heightBox(0.01),
@@ -336,7 +338,6 @@ class _AddNewItemState extends State<AddNewItem> {
                           phoneField(
                               onChangePhone: (val) {
                                 if (val != null) {
-                                
                                   provider.selectedId.text = DateTime.now()
                                       .millisecondsSinceEpoch
                                       .toString();
@@ -455,7 +456,7 @@ class _AddNewItemState extends State<AddNewItem> {
                                             child: appText(
                                                 textAlign: TextAlign.center,
                                                 context: context,
-                                                title: (item.productprice
+                                                title: (item.lastPurchase
                                                             .toString() +
                                                         '/' +
                                                         item.stock
@@ -512,18 +513,27 @@ class _AddNewItemState extends State<AddNewItem> {
                           Row(
                             children: [
                               Expanded(
-                                child: popupMenuProduct(
-                                    context: context,
-                                    dataList: provider.inventoryList,
-                                    selectedItem:
-                                        provider.selectedInventoryItem,
-                                    onSelect: (val) {
-                                      provider.onSelectInventoryItem(val);
-                                      if (widget.type == 1) {
-                                        provider.productprice.text =
-                                            val.productprice ?? '0.0';
-                                      }
-                                    }),
+                                child: textField(
+                                  bgColor: ColorPalette.green,
+                                  hintColor: ColorPalette.white,
+                                  controller: TextEditingController(),
+                                  hintText: provider.selectedInventoryItem,
+                                  readOnly: true,
+                                  onTap: () {
+                                    popupMenuProduct(
+                                        context: context,
+                                        selectedItem:
+                                            provider.selectedInventoryItem,
+                                        onSelect: (val) {
+                                          provider.onSelectInventoryItem(val);
+                                          if (widget.type == 1) {
+                                            provider.productprice.text =
+                                                val.productprice ?? '0.0';
+                                          }
+                                        });
+                                  },
+                                  context: context,
+                                ),
                               ),
                               context.widthBox(0.01),
                               Expanded(
@@ -650,25 +660,41 @@ class _AddNewItemState extends State<AddNewItem> {
                               ),
                             ),
                           ),
-                          context.heightBox(0.01),
-                          textField(
-                              onChange: (val) {},
-                              textInputType: TextInputType.number,
-                              prefixIcon: GestureDetector(
-                                child: const Icon(
-                                  Icons.discount,
-                                  color: ColorPalette.green,
-                                ),
-                              ),
-                              suffixIcon: GestureDetector(
-                                child: const Icon(Icons.add_circle,
-                                    color: ColorPalette.green),
-                              ),
-                              context: context,
-                              controller: provider.dicount,
-                              hintText: "Add Dicsount")
                         ],
                       ),
+                    if (!provider.showAddItem) context.heightBox(0.01),
+                    if (!provider.showAddItem)
+                      numberTextField(
+                          onChange: (val) {
+                            if (val == null || val == '') {
+                              provider.changeDiscountAdded(false);
+                            }
+                          },
+                          textInputType: TextInputType.number,
+                          prefixIcon: GestureDetector(
+                            child: const Icon(
+                              Icons.discount,
+                              color: ColorPalette.green,
+                            ),
+                          ),
+                          suffixIcon: GestureDetector(
+                            onTap: provider.isDiscountAdded
+                                ? () {}
+                                : () {
+                                    if (provider.completetPrice >=
+                                        double.parse(provider.dicount.text)) {
+                                      provider.addDiscount();
+                                    }
+                                  },
+                            child: const Icon(
+                              Icons.add_circle,
+                              color: ColorPalette.green,
+                              size: 30,
+                            ),
+                          ),
+                          context: context,
+                          controller: provider.dicount,
+                          hintText: "Add Discount"),
                     context.heightBox(0.03),
                     Container(
                       padding: const EdgeInsets.all(10),
@@ -723,7 +749,17 @@ class _AddNewItemState extends State<AddNewItem> {
                               child: textField(
                                   textInputType: TextInputType.number,
                                   onChange: (val) {
-                                    provider.getRemainingBalance();
+                                    if (val != null) {
+                                      if (double.parse(val ?? '0.0') >
+                                          provider.completetPrice) {
+                                        toast(
+                                            msg:
+                                                'Paid Price must be less than equal to Grand total',
+                                            context: context);
+                                      } else {
+                                        provider.getRemainingBalanc();
+                                      }
+                                    }
                                   },
                                   context: context,
                                   controller: provider.payment,
@@ -798,39 +834,91 @@ class _AddNewItemState extends State<AddNewItem> {
                                 if (widget.type == 1) {
                                   bool exist = provider.customerList.any((e) =>
                                       e.name!.toLowerCase() ==
-                                          provider.name.text.toLowerCase() &&
-                                      e.contact == provider.phone.text &&
+                                          provider.name.text
+                                              .toLowerCase()
+                                              .trimRight() &&
                                       e.customerId.toString() !=
                                           provider.selectedId.text);
+                                  print(
+                                      'Exist $exist,${provider.selectedId.text}');
                                   if (exist) {
                                     toast(
-                                        msg: 'Customer Already exist',
+                                        msg:
+                                            'Customer with name ${provider.name.text} already  exist. Try with new name',
+                                        maxline: 2,
                                         context: context);
                                   } else {
                                     print(
-                                        "Selected ID${provider.salesItems[0].lastSale}");
-                                    provider.addSalesData(
-                                      provider.salesItems,
-                                      context,
-                                      widget.type,
-                                    );
+                                        "Payment ${provider.payment.text} ${provider.name.text},${provider.completetPrice}");
+                                    if (double.parse(
+                                            provider.payment.text ?? '0.0') >
+                                        provider.completetPrice) {
+                                      toast(
+                                          msg:
+                                              'Paid Price must be less than equal to Grand total',
+                                          context: context);
+                                    } else {
+                                      if ((provider.name.text.isEmpty ||
+                                              provider.name.text ==
+                                                  "Walking") &&
+                                          double.parse(provider.payment.text) !=
+                                              provider.completetPrice) {
+                                        toast(
+                                            msg:
+                                                'please enter complete payment!. its walking one',
+                                            maxline: 2,
+                                            context: context);
+                                      } else {
+                                        provider.addSalesData(
+                                          provider.salesItems,
+                                          context,
+                                          widget.type,
+                                        );
+                                      }
+                                    }
                                   }
                                 } else {
                                   bool exist = provider.supplierList.any((e) =>
                                       e.name!.toLowerCase() ==
-                                          provider.name.text.toLowerCase() &&
-                                      e.contact == provider.phone.text &&
+                                          provider.name.text
+                                              .toLowerCase()
+                                              .trimRight() &&
                                       e.customerId.toString() !=
                                           provider.selectedId.text);
+                                  print(
+                                      'Exist $exist,${provider.selectedId.text}');
                                   if (exist) {
                                     toast(
-                                        msg: 'Customer Already exist',
+                                        msg:
+                                            'Supplier with name ${provider.name.text} already  exist. Try with new name',
+                                        maxline: 2,
                                         context: context);
                                   } else {
-                                    provider.addPurchaseData(
-                                        provider.purchaseItems,
-                                        context,
-                                        widget.type);
+                                    if (double.parse(
+                                            provider.payment.text ?? '0.0') >
+                                        provider.completetPrice) {
+                                      toast(
+                                          msg:
+                                              'Paid Price must be less than equal to Grand total',
+                                          context: context);
+                                    } else {
+                                      if ((provider.name.text.isEmpty ||
+                                              provider.name.text ==
+                                                  "Walking") &&
+                                          double.parse(provider.payment.text) !=
+                                              provider.completetPrice) {
+                                        toast(
+                                            msg:
+                                                'ok enter complete payment!. its walking one',
+                                            maxline: 2,
+                                            context: context);
+                                      } else {
+                                        provider.addPurchaseData(
+                                            provider.purchaseItems,
+                                            context,
+                                            widget.type);
+                                      }
+                                    }
                                   }
                                 }
                               },

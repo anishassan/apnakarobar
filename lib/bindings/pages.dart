@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sales_management/bindings/routes.dart';
+import 'package:sales_management/models/report_model.dart';
 import 'package:sales_management/models/sales_model.dart';
 import 'package:sales_management/screens/add_product/add_product_screen.dart';
 import 'package:sales_management/screens/add_product/component/add_new_item.dart';
@@ -53,23 +54,23 @@ class Pages {
         return MaterialPageRoute(builder: (context) {
           final arguments = settings.arguments as List;
           Datum model = arguments[0] as Datum;
-          int type = arguments[1] as int;
+          bool type = arguments[1] as bool;
+          String soldDate = arguments[3] as String;
 
           return DetailScreen(
-            
+            soldDate: soldDate,
             model: model,
-            type: type,
+            isSale: type,
           );
         });
       case Routes.customersupplierdetail:
         return MaterialPageRoute(builder: (context) {
           final arguments = settings.arguments as List;
-        int type = arguments[0] as int;
-        Datum data = arguments[1] as Datum;
+          int type = arguments[0] as int;
+          int index = arguments[1] as int;
 
           return CustomerSupplierDetailScreen(
-            data: data,
-            
+            ind: index,
             type: type,
           );
         });

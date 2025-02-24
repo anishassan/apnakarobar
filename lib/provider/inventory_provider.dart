@@ -1,9 +1,13 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import 'package:sales_management/db/database_helper.dart';
+import 'package:sales_management/main.dart';
 import 'package:sales_management/models/inventory_model.dart';
 import 'package:sales_management/models/item_model.dart';
 import 'package:sales_management/models/sales_model.dart';
+import 'package:sales_management/provider/dashboard_provider.dart';
 
 class InventoryProvider extends ChangeNotifier {
   ScrollController scrollController = ScrollController();
@@ -18,6 +22,13 @@ class InventoryProvider extends ChangeNotifier {
   TextEditingController search = TextEditingController();
   List<InventoryItem> _filterList = [];
   List<InventoryItem> get filterList => _filterList;
+  String _searchText = '';
+  String get searchText => _searchText;
+  addSearchText(String v) {
+    _searchText = v;
+    notifyListeners();
+  }
+
   searchInventoryByTitle(
       List<InventoryModel> inventoryList, String searchQuery) {
     _filterList.clear();
@@ -35,6 +46,7 @@ class InventoryProvider extends ChangeNotifier {
   clearFilter() {
     _filterList.clear();
     filterList.clear();
+    _searchText = '';
     notifyListeners();
   }
 
@@ -44,11 +56,11 @@ class InventoryProvider extends ChangeNotifier {
   List<InventoryItem> get products => _products;
   bool _loading = false;
   bool get loading => _loading;
-  getInventoryData() async {
+  getInventoryData({required BuildContext context}) async {
     _inventoryList.clear();
     inventoryList.clear();
     _products.clear();
-
+checkInternetConnectivity();
     List<Map<String, dynamic>> inv = await DatabaseHelper.getInventory();
     final List<Map<String, dynamic>> combinedData = inv
         .expand((entry) => entry['data'])
@@ -56,6 +68,9 @@ class InventoryProvider extends ChangeNotifier {
         .toList();
     for (var p in combinedData) {
       _products.add(InventoryItem.fromJson(p));
+      if(isConnected){
+        Provider.of<DashboardProvider>(context,listen: false).uploadInventory(InventoryItem.fromJson(p),context,getIt(),getIt());
+      }
     }
     List<InventoryModel> data =
         inv.map((e) => InventoryModel.fromJson(e)).toList();
@@ -120,7 +135,7 @@ class InventoryProvider extends ChangeNotifier {
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity??'0');
+      totalProducts += int.parse(x.quantity ?? '0');
     }
     return (totalProducts + int.parse(quantity)).toString();
   }
@@ -131,8 +146,44 @@ class InventoryProvider extends ChangeNotifier {
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity??'0');
+      totalProducts += int.parse(x.quantity ?? '0');
     }
     return totalProducts.toString();
   }
+
+    bool isConnected = true;
+
+  Future<void> checkInternetConnectivity() async {
+    final List<ConnectivityResult> connectivityResult =
+        await (Connectivity().checkConnectivity());
+
+    if (connectivityResult.contains(ConnectivityResult.mobile)) {
+      print("Moble");
+   
+        isConnected = true;
+   
+    } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
+      print('Wifi');
+     
+        isConnected = true;
+     
+    } else if (connectivityResult.contains(ConnectivityResult.ethernet)) {
+   
+        isConnected = true;
+
+    } else if (connectivityResult.contains(ConnectivityResult.vpn)) {
+      print('VPN');
+       isConnected=true;
+    } else if (connectivityResult.contains(ConnectivityResult.bluetooth)) {
+      print('Bluetooth');
+     isConnected=true;
+    } else if (connectivityResult.contains(ConnectivityResult.other)) {
+      print('other');
+       isConnected=true;
+    } else if (connectivityResult.contains(ConnectivityResult.none)) {
+       isConnected=true;
+    }
+    notifyListeners();
+  }
+
 }

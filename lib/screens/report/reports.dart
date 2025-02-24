@@ -59,13 +59,13 @@ class _ReportsState extends State<Reports> {
         return await _reportProvider.getSales();
 
       case 2:
-        return await _reportProvider.getSales();
+        return await _reportProvider.getCustomer();
 
       case 1:
         return await _reportProvider.getPurchase();
 
-      case 4:
-        await _reportProvider.getPurchase();
+      case 3:
+        return await _reportProvider.getSuppler();
     }
   }
 
@@ -155,9 +155,9 @@ class _ReportsState extends State<Reports> {
                                         textColor: ColorPalette.white,
                                         context: context,
                                         title: widget.type == 3
-                                            ? provider.supplierList.length
+                                            ? provider.supplierReport.length
                                                 .toString()
-                                            : provider.customerList.length
+                                            : provider.customerReport.length
                                                 .toString()),
                                   ],
                                 ),
@@ -176,9 +176,9 @@ class _ReportsState extends State<Reports> {
                                         context: context,
                                         title: widget.type == 3
                                             ? provider.getRemainingBalance(
-                                                provider.supplierList)
+                                                provider.supplierReport)
                                             : provider.getRemainingBalance(
-                                                provider.customerList)),
+                                                provider.customerReport)),
                                   ],
                                 ),
                               ],
@@ -187,22 +187,22 @@ class _ReportsState extends State<Reports> {
                           ListView.builder(
                               shrinkWrap: true,
                               itemCount: widget.type == 3
-                                  ? provider.supplierList.length
-                                  : provider.customerList.length,
+                                  ? provider.supplierReport.length
+                                  : provider.customerReport.length,
                               itemBuilder: (context, index) {
                                 final user = widget.type == 3
-                                    ? provider.supplierList[index]
-                                    : provider.customerList[index];
+                                    ? provider.supplierReport[index]
+                                    : provider.customerReport[index];
                                 return GestureDetector(
                                   onTap: () {
                                     if (widget.type == 3) {
                                       Navigator.pushNamed(context,
                                           Routes.customersupplierdetail,
-                                          arguments: [1, user]);
+                                          arguments: [1, index]);
                                     } else {
                                       Navigator.pushNamed(context,
                                           Routes.customersupplierdetail,
-                                          arguments: [0, user]);
+                                          arguments: [2, index]);
                                     }
                                   },
                                   child: Container(
@@ -244,12 +244,13 @@ class _ReportsState extends State<Reports> {
                                                 textColor: ColorPalette.white,
                                                 fontSize: 10,
                                                 context: context,
-                                                title: user.remainigBalance ==
-                                                            '' ||
-                                                        user.remainigBalance!
-                                                            .isEmpty
-                                                    ? 'paid'
-                                                    : 'unpaid')
+                                                title:
+                                                    provider.customerSupplierRemainingBalance(
+                                                                user.data ??
+                                                                    []) ==
+                                                            '0.0'
+                                                        ? 'Paid'
+                                                        : 'Unpaid')
                                           ],
                                         ),
                                         const Spacer(),
@@ -257,13 +258,42 @@ class _ReportsState extends State<Reports> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.end,
                                           children: [
-                                            const Icon(Icons.call,
-                                                color: ColorPalette.white),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    provider.makePhoneCall(
+                                                        user.contact ?? '');
+                                                  },
+                                                  child: const Icon(Icons.call,
+                                                      color:
+                                                          ColorPalette.white),
+                                                ),
+                                                context.widthBox(0.01),
+                                                if (widget.type == 2)
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      provider.sendSMS(
+                                                          user.contact ?? '',
+                                                          'محترم ${user.name}، امید ہے آپ خیریت سے ہونگے۔ آپ کے ذمہ (${provider.customerSupplierRemainingBalance(user.data ?? [])}) کی رقم بقایا جات ہیں۔ برائے مہربانی جلد از جلد ادائیگی کر دیں۔ شکریہ۔منجانب (ApnaKarobar)');
+                                                    },
+                                                    child: const Icon(
+                                                        Icons.message,
+                                                        color:
+                                                            ColorPalette.white),
+                                                  ),
+                                              ],
+                                            ),
                                             appText(
-                                                context: context,
-                                                textColor: ColorPalette.white,
-                                                title:
-                                                    'PKR ${user.remainigBalance ?? '0.0'}')
+                                              context: context,
+                                              textColor: ColorPalette.white,
+                                              title: provider
+                                                  .customerSupplierRemainingBalance(
+                                                      user.data ?? []),
+                                              // 'PKR ${user.remainigBalance ?? '0.0'}'
+                                            )
                                           ],
                                         )
                                       ],
@@ -303,10 +333,10 @@ class _ReportsState extends State<Reports> {
                                           _salesList, provider.selectedFilter,
                                           customEndDate: provider.toDate,
                                           customStartDate:
-                                              DateFormat('dd-MM-yyyy')
+                                              DateFormat('yyyy-MM-dd')
                                                   .format(d));
                                       provider.pickFromAndToDate(
-                                          date: DateFormat('dd-MM-yyyy')
+                                          date: DateFormat('yyyy-MM-dd')
                                               .format(d));
                                     }
                                   }
@@ -348,11 +378,11 @@ class _ReportsState extends State<Reports> {
                                           _salesList, provider.selectedFilter,
                                           customStartDate: provider.fromDate,
                                           customEndDate:
-                                              DateFormat('dd-MM-yyyy')
+                                              DateFormat('yyyy-MM-dd')
                                                   .format(d));
                                       provider.pickFromAndToDate(
                                           isFromDate: false,
-                                          date: DateFormat('dd-MM-yyyy')
+                                          date: DateFormat('yyyy-MM-dd')
                                               .format(d));
                                     }
                                   }
@@ -424,17 +454,18 @@ class _ReportsState extends State<Reports> {
                         Expanded(
                             child: ListView.builder(
                                 itemCount: provider.filteredDataList.isEmpty &&
-                                        provider.selectedFilter != 'Custom Date'
+                                        provider.selectedFilter == 'All Time'
                                     ? _salesList.length
                                     : provider.filteredDataList.length,
                                 itemBuilder: (context, index) {
-                                  final data =
-                                      provider.filteredDataList.isEmpty &&
-                                              provider.selectedFilter !=
-                                                  'Custom Date'
-                                          ? _salesList[index]
-                                          : provider.filteredDataList[index];
-
+                                  final data = provider
+                                              .filteredDataList.isEmpty &&
+                                          provider.selectedFilter == 'All Time'
+                                      ? _salesList[index]
+                                      : provider.filteredDataList[index];
+                                  List<Datum> cssp = data.data;
+                                  // provider.secondFilterData(
+                                  // data.data, provider.scndSelectedFilter);
                                   return Column(
                                     children: [
                                       Container(
@@ -487,9 +518,9 @@ class _ReportsState extends State<Reports> {
                                         ),
                                       ),
                                       Column(
-                                        children: List.generate(
-                                            data.data.length, (index2) {
-                                          final data2 = data.data[index2];
+                                        children: List.generate(cssp.length,
+                                            (index2) {
+                                          final data2 = cssp[index2];
 
                                           return Container(
                                             padding: const EdgeInsets.symmetric(
@@ -558,9 +589,10 @@ class _ReportsState extends State<Reports> {
                               Expanded(
                                 child: Center(
                                     child: appText(
-                                        fontSize: 14,
-                                        context: context,
-                                        title: provider.totalSales)),
+                                  fontSize: 14,
+                                  context: context,
+                                  title: provider.totalSales,
+                                )),
                               ),
                               Expanded(
                                 child: Center(

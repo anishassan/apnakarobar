@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sales_management/models/inventory_model.dart';
+import 'package:sales_management/models/report_model.dart';
 import 'package:sales_management/models/sales_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -16,15 +20,57 @@ class DatabaseHelper {
   static const String _sales = 'sales';
   static const _customer = 'customer';
   static const String _purchase = 'purchase';
-  static const String _path = 'kddddk.db';
+  static const String _customerReport = 'customerreport';
+  static const String _supplierReport = 'supplierreport';
+  static const String _path = 'apnakarobar.db';
   static const String _soldProducts = 'soldProducts';
 
+// static Future<String> saveDatabaseToDownloads(String dbName) async {
+//   try {
+//     // Request storage permission
+//     var status = await Permission.storage.request();
+//     if (!status.isGranted) {
+//       print("Storage permission denied.");
+//       return '';
+//     }
+
+//     // Get the path of the Downloads directory
+//     final downloadsDir = await getDownloadsDirectory();
+//     if (downloadsDir == null) {
+//       print("Downloads directory is not available.");
+//       return '';
+//     }
+
+//     // Define source path (app data directory) and destination path (Downloads folder)
+//     final appDir = await getApplicationDocumentsDirectory();
+//     final sourcePath = '${appDir.path}/$dbName';
+//     final destinationPath = '${downloadsDir.path}/$dbName';
+
+//     // Copy the database file to the Downloads directory
+//     final sourceFile = File(sourcePath);
+//     final destinationFile = File(destinationPath);
+
+//     if (await sourceFile.exists()) {
+//       await sourceFile.copy(destinationFile.path);
+//       print("Database file saved to Downloads: $destinationPath");
+//       return destinationPath; // Return the destination path
+//     } else {
+//       print("Database file not found at: $sourcePath");
+//       return ''; // Return null if source file doesn't exist
+//     }
+//   } catch (e) {
+//     print("Error saving database file: $e");
+//     return ''; // Return null if an error occurs
+//   }
+// }
   // Initialize the database
   static Future<void> initDb() async {
     if (_db != null) return; // Prevent reinitialization if already initialized
 
     try {
       String path = join(await getDatabasesPath(), _path);
+      // String path = await saveDatabaseToDownloads(_path);
+      print("Database Path $path");
       _db = await openDatabase(path, version: _version,
           onCreate: (db, version) async {
         await db.execute('''
@@ -42,6 +88,7 @@ class DatabaseHelper {
             lastPurchase TEXT NOT NULL,
             desc TEXT NOT NULL,
             productprice TEXT NOT NULL,
+            
             quantity TEXT NOT NULL,
             stock TEXT NOT NULL,
             date TEXT NOT NULL,
@@ -85,17 +132,19 @@ class DatabaseHelper {
             FOREIGN KEY (customerId) REFERENCES $_customer(id)
           )
         ''');
-        //     await db.execute('''
-        //   CREATE TABLE $_purchase(
-        //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-        //     name TEXT,
-        //     remainigBalance TEXT,
-        //     paidBalance TEXT,
-        //     contact TEXT,
-        //    soldDate TEXT,
-        //    soldProducts TEXT
-        //   )
-        // ''');
+
+        await db.execute('''CREATE TABLE $_customerReport(
+          id INTEGER,
+          name TEXT,
+          contact TEXT,
+          data TEXT
+          )''');
+        await db.execute('''CREATE TABLE $_supplierReport(
+          id INTEGER,
+          name TEXT,
+          contact TEXT,
+          data TEXT
+          )''');
         await db.execute('''
           CREATE TABLE $_purchase(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,8 +163,7 @@ class DatabaseHelper {
     bool isSuccess = false;
     if (_db == null) throw Exception("Database is not initialized");
 
-    final now =
-        DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final now = DateFormat('yyyy-MM-dd').format(DateTime.now());
     print(data.length);
     // Check if an exact matching date exists
     final existingDate = await _db!.query(
@@ -151,7 +199,7 @@ class DatabaseHelper {
 
   // Get inventory data
   static Future<List<Map<String, dynamic>>> getInventory() async {
-    final inventory = await _db!.query(_inventory);
+    final inventory = await _db?.query(_inventory);
     print(inventory);
     if (_db == null) return [];
 
@@ -200,6 +248,65 @@ class DatabaseHelper {
     return await _db!.delete(_inventory, where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<bool> updateRemainingBalance(
+      {required int customerId,
+      required String soldDate,
+      required String newBalance,
+      required String paidNewBalance,
+      bool isSales = false,
+      required String name,
+      required String contact}) async {
+    bool isSuccess = false;
+    // Update query
+    List<Map<String, dynamic>> result = await _db!.query(
+      isSales ? _sales : _purchase,
+      where: 'soldDate = ?',
+      whereArgs: [soldDate],
+    );
+
+    if (result.isNotEmpty) {
+      // Parse the data field (JSON string)
+      String jsonData = result.first['data'];
+      List<dynamic> dataList = jsonDecode(jsonData);
+
+      // Find the matching customer and update remainigBalance
+      for (var customer in dataList) {
+        print(double.parse(newBalance).toString());
+        if (customer['id'] == customerId &&
+            customer['name'] == name &&
+            customer['contact'] == contact) {
+          customer['remainigBalance'] = newBalance;
+          customer['paidBalance'] = (double.parse(customer['paidBalance']) +
+                  double.parse(paidNewBalance))
+              .toString();
+          print(
+              'Updated balance for customer: $name ,${customer['remainigBalance']}');
+        }
+      }
+
+      // Convert the updated list back to JSON
+      String updatedJson = jsonEncode(dataList);
+
+      // Update the database
+      int count = await _db!.update(
+        isSales ? _sales : _purchase,
+        {'data': updatedJson},
+        where: 'soldDate = ?',
+        whereArgs: [soldDate],
+      );
+
+      if (count > 0) {
+        isSuccess = true;
+        print('Database updated successfully');
+      } else {
+        print('Failed to update the database');
+      }
+    } else {
+      print('No record found for soldDate: $soldDate');
+    }
+    return isSuccess;
+  }
+
   Future<bool> addSalesData(SalesModel salesData) async {
     try {
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -241,8 +348,14 @@ class DatabaseHelper {
           if (existingCustomerIndex != -1) {
             final existingCustomer = existingCustomers[existingCustomerIndex];
 
-            existingCustomer.remainigBalance = customer.remainigBalance;
-            existingCustomer.paidBalance = customer.paidBalance;
+            existingCustomer.remainigBalance =
+                (double.parse(existingCustomer.remainigBalance ?? '0.0') +
+                        double.parse(customer.remainigBalance ?? '0.0'))
+                    .toString();
+            existingCustomer.paidBalance =
+                (double.parse(existingCustomer.paidBalance ?? '0.0') +
+                        double.parse(customer.paidBalance ?? '0.0'))
+                    .toString();
 
             for (var product in customer.soldProducts!) {
               final existingProductIndex = existingCustomer.soldProducts!
@@ -354,8 +467,14 @@ class DatabaseHelper {
             final existingCustomer = existingCustomers[existingCustomerIndex];
 
             // Update customer balances
-            existingCustomer.remainigBalance = customer.remainigBalance;
-            existingCustomer.paidBalance = customer.paidBalance;
+            existingCustomer.remainigBalance =
+                (double.parse(existingCustomer.remainigBalance ?? '0.0') +
+                        double.parse(customer.remainigBalance ?? '0.0'))
+                    .toString();
+            existingCustomer.paidBalance =
+                (double.parse(existingCustomer.paidBalance ?? '0.0') +
+                        double.parse(customer.paidBalance ?? '0.0'))
+                    .toString();
 
             // Merge sold products
             for (var product in customer.soldProducts!) {
@@ -439,30 +558,208 @@ class DatabaseHelper {
     final result = await _db!.query(_sales);
     print("Sales Daata $result");
 
-    return result.map((data) {
-      // Decode the 'data' field from JSON string to List<dynamic>
-      final decodedData = jsonDecode(data['data'].toString()) as List<dynamic>;
+    return result
+        .map((data) {
+          // Decode the 'data' field from JSON string to List<dynamic>
+          final decodedData =
+              jsonDecode(data['data'].toString()) as List<dynamic>;
 
-      // Convert the decoded data to a list of Datum objects
-      return SalesModel.fromJson({
-        'soldDate': data['soldDate'],
-        'data': decodedData.map((e) => Datum.fromJson(e)).toList(),
-      });
-    }).toList();
+          // Convert the decoded data to a list of Datum objects
+          return SalesModel.fromJson({
+            'soldDate': data['soldDate'],
+            'id': data['id'],
+            'data': decodedData.map((e) => Datum.fromJson(e)).toList(),
+          });
+        })
+        .toList()
+        .reversed
+        .toList();
   }
 
   static Future<List<SalesModel>> getAllPurchaseData() async {
     final result = await _db!.query(_purchase);
 
-    return result.map((data) {
-      // Decode the 'data' field from JSON string to List<dynamic>
-      final decodedData = jsonDecode(data['data'].toString()) as List<dynamic>;
+    return result
+        .map((data) {
+          // Decode the 'data' field from JSON string to List<dynamic>
+          final decodedData =
+              jsonDecode(data['data'].toString()) as List<dynamic>;
+          print("Purchase Data $decodedData");
+          // Convert the decoded data to a list of Datum objects
+          return SalesModel.fromJson({
+            'soldDate': data['soldDate'],
+            'id': data['id'],
+            'data': decodedData.map((e) => Datum.fromJson(e)).toList(),
+          });
+        })
+        .toList()
+        .reversed
+        .toList();
+  }
 
-      // Convert the decoded data to a list of Datum objects
-      return SalesModel.fromJson({
-        'soldDate': data['soldDate'],
-        'data': decodedData.map((e) => Datum.fromJson(e)).toList(),
-      });
-    }).toList();
+  Future<void> insertOrUpdateData(
+    Datum newData,
+    bool isSale,
+    String pickedDate, {
+    bool isFirstTime = true,
+    required String soldDate,
+  }) async {
+    String name = newData.name ?? '';
+    int id = newData.customerId ?? 0;
+    print("CUSTOMER ID +++++++++++++++++++++++++++++++++++++ $id");
+    String contact = newData.contact ?? '';
+
+    // Query to find existing record
+    List<Map<String, dynamic>> result = await _db!.query(
+      isSale ? _customerReport : _supplierReport,
+      where: 'name = ? AND contact = ? AND id = ?',
+      whereArgs: [name, contact, id],
+    );
+
+    double totalSales = 0.0;
+
+    // Calculate total sales from sold products
+    for (InventoryItem item in newData.soldProducts ?? []) {
+      totalSales += (double.parse(item.buySaleQuantity ?? '0') *
+          double.parse(item.productprice ?? '0.0'));
+    }
+
+    try {
+      if (result.isNotEmpty) {
+        // Update existing record
+        Map<String, dynamic> existingRecord = result.first;
+        List<dynamic> existingData = jsonDecode(existingRecord['data']);
+
+        existingData.add(ReportModel(
+            sales: isFirstTime ? totalSales.toString() : "0.0",
+            remainingBalance: newData.remainigBalance ?? '0.0',
+            paidBalance: newData.paidBalance ?? '0.0',
+            date: pickedDate,
+            soldDate: soldDate));
+
+        // Update record in database
+        await _db!.update(
+          isSale ? _customerReport : _supplierReport,
+          {'data': jsonEncode(existingData)},
+          where: 'id = ?',
+          whereArgs: [existingRecord['id']],
+        );
+      } else {
+        // Insert new record if no match is found
+        List<Map<String, dynamic>> newEntry = [
+          ReportModel(
+            soldDate: soldDate,
+            sales: isFirstTime ? totalSales.toString() : "0.0",
+            remainingBalance: newData.remainigBalance,
+            paidBalance: newData.paidBalance,
+            date: pickedDate,
+          ).toJson()
+        ];
+
+        await _db!.insert(
+          isSale ? _customerReport : _supplierReport,
+          {
+            'id': id,
+            'name': name,
+            'contact': contact,
+            'data': jsonEncode(newEntry),
+          },
+        );
+      }
+    } catch (e) {
+      print("Error during data insertion/update: $e");
+    }
+  }
+
+  Future<List<ReportData>> getCustomerReport() async {
+    // Query the database
+    final result = await _db!.query(_customerReport);
+    print(result);
+    List<ReportData> dataList = [];
+
+    if (result.isNotEmpty) {
+      for (var record in result) {
+        // Decode the JSON string from the database
+        var decodedData = jsonDecode(record['data'].toString());
+
+        // If data is a List (array), process it as such
+        List<ReportModel> reportModels = [];
+        if (decodedData is List) {
+          reportModels =
+              decodedData.map((data) => ReportModel.fromJson(data)).toList();
+        }
+        // If data is a single object (not an array), wrap it in a list
+        else if (decodedData is Map<String, dynamic>) {
+          reportModels.add(ReportModel.fromJson(decodedData));
+        }
+
+        // Add the parsed ReportData to the dataList
+        dataList.add(ReportData(
+          id: record['id'] as int,
+          name: record['name'] as String,
+          contact: record['contact'] as String,
+          data: reportModels,
+        ));
+      }
+    }
+
+    // Return the parsed list of ReportData
+    return dataList;
+  }
+
+  Future<List<ReportData>> getSupplierReport() async {
+    // Query the database
+    final result = await _db!.query(_supplierReport);
+    print(result);
+    List<ReportData> dataList = [];
+
+    if (result.isNotEmpty) {
+      for (var record in result) {
+        // Decode the JSON string from the database
+        var decodedData = jsonDecode(record['data'].toString());
+
+        // If data is a List (array), process it as such
+        List<ReportModel> reportModels = [];
+        if (decodedData is List) {
+          reportModels =
+              decodedData.map((data) => ReportModel.fromJson(data)).toList();
+        }
+        // If data is a single object (not an array), wrap it in a list
+        else if (decodedData is Map<String, dynamic>) {
+          reportModels.add(ReportModel.fromJson(decodedData));
+        }
+
+        // Add the parsed ReportData to the dataList
+        dataList.add(ReportData(
+          id: record['id'] as int,
+          name: record['name'] as String,
+          contact: record['contact'] as String,
+          data: reportModels,
+        ));
+      }
+    }
+
+    // Return the parsed list of ReportData
+    return dataList;
+  }
+
+  Future<List<ReportData>> parseReportData(String jsonString) async {
+    // Decode the JSON string into a list
+    List<dynamic> decodedJson = jsonDecode(jsonString);
+
+    // Convert the decoded JSON into a list of ReportData
+    List<ReportData> reportDataList =
+        decodedJson.map((item) => ReportData.fromJson(item)).toList();
+
+    return reportDataList;
+  }
+
+  Future<void> deleteDatabaseFile() async {
+    String databasesPath = await getDatabasesPath();
+    String dbPath = join(databasesPath, _path);
+
+    // Delete the database file
+    await deleteDatabase(dbPath);
+    print('Database deleted successfully');
   }
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/models/inventory_model.dart';
+import 'package:sales_management/models/report_model.dart';
 import 'package:sales_management/models/sales_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReportProvider extends ChangeNotifier {
   //Sales Report
-  String _fromDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
-  String _toDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+  String _fromDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String _toDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String get fromDate => _fromDate;
   String get toDate => _toDate;
   pickFromAndToDate({required String date, bool isFromDate = true}) {
@@ -34,8 +36,10 @@ class ReportProvider extends ChangeNotifier {
   String _totalPaidBalance = '0.0';
   String get totalPaidBalance => _totalPaidBalance;
   changeFilter(String f, List<SalesModel> salesData) {
+    print("SALES DATA ${_fromDate}");
     Map<String, dynamic> result = filterAndCalculate(salesData, f,
         customStartDate: _fromDate, customEndDate: _toDate);
+    print("TOTal SALE ${result['totalValue']}");
     _totalSales = result['totalValue'];
     _totalPaidBalance = result['totalPaidBalance'];
     _selectedFilter = f;
@@ -62,66 +66,86 @@ class ReportProvider extends ChangeNotifier {
 
     return totalLastSale.toString();
   }
-  String calculatesingleTotalLastSale(List<Datum> data,int id) {
+
+  String calculatesingleTotalLastSale(List<Datum> data, int id) {
     double totalLastSale = 0.0;
 
     for (var datum in data) {
-      if(datum.customerId ==id){
-      for (var product in datum.soldProducts!) {
-        totalLastSale += int.parse(product.quantity) *
-            double.parse(product.productprice ?? '0.0');
-      }}
+      if (datum.customerId == id) {
+        for (var product in datum.soldProducts!) {
+          totalLastSale += int.parse(product.buySaleQuantity ?? '0') *
+              double.parse(product.productprice ?? '0.0');
+          print("Single total sale $totalLastSale");
+        }
+      }
     }
 
     return totalLastSale.toString();
   }
-  String customerSupplierTotalSales(List<SalesModel> data,int id) {
+
+  String customerSupplierTotalSales(
+    List<ReportModel> data,
+  ) {
     double totalLastSale = 0.0;
-for(var v in data){
-    for (var datum in v.data) {
-      if(datum.customerId ==id){
-      for (var product in datum.soldProducts!) {
-        totalLastSale += int.parse(product.quantity) *
-            double.parse(product.productprice ?? '0.0');
-      }}
-    }
+    // for (var v in data) {
+    //   for (var datum in v.data) {
+    //     if (datum.customerId == id) {
+    //       print("Porduct Length ${datum.soldProducts!.length}");
+    //       for (var product in datum.soldProducts!) {
+    //         totalLastSale += int.parse(product.quantity) *
+    //             double.parse(product.productprice ?? '0.0');
+    //       }
+    //     }
+    //   }
+    // }
+    for (ReportModel d in data) {
+      totalLastSale += double.parse(d.sales ?? '0.0');
     }
 
     return totalLastSale.toString();
   }
-
-  
 
   String calculateTotalPayment(List<Datum> data) {
     double totalpayment = 0.0;
 
     for (var datum in data) {
-      print("Total Balance ${datum.paidBalance}");
       totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
+      print("Total Balance ${totalpayment}");
     }
 
     return totalpayment.toString();
   }
-  String calculateSingleTotalPayment(List<Datum> data,int id) {
+
+  String calculateSingleTotalPayment(List<Datum> data, int id) {
     double totalpayment = 0.0;
 
     for (var datum in data) {
-      if(datum.customerId == id){
-      print("Total Balance ${datum.paidBalance}");
-      totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
-    }}
+      if (datum.customerId == id) {
+        print("Total Balance ${datum.paidBalance}");
+        totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
+        print("Single total payment $totalpayment");
+      }
+    }
 
     return totalpayment.toString();
   }
-  String customerSupplierTotalPayment(List<SalesModel> data,int id) {
+
+  String customerSupplierTotalPayment(
+    List<ReportModel> data,
+  ) {
     double totalpayment = 0.0;
-for(var v in data){
-    for (var datum in v.data) {
-      if(datum.customerId == id){
-      print("Total Balance ${datum.paidBalance}");
-      totalpayment = totalpayment + double.parse(datum.paidBalance ?? '0.0');
-    }}
-}
+    // for (var v in data) {
+    //   for (var datum in v.data) {
+    //     if (datum.customerId == id) {
+    //       print("Total Balance ${datum.paidBalance}");
+    //       totalpayment =
+    //           totalpayment + double.parse(datum.paidBalance ?? '0.0');
+    //     }
+    //   }
+    // }
+    for (ReportModel d in data) {
+      totalpayment += double.parse(d.paidBalance ?? '0.0');
+    }
 
     return totalpayment.toString();
   }
@@ -131,7 +155,7 @@ for(var v in data){
     print("Quantities ${data.soldProducts!.length}");
     for (InventoryItem p in data.soldProducts ?? []) {
       totalLastSale +=
-          double.parse(p.productprice ?? '0.0') * int.parse(p.quantity??'0');
+          double.parse(p.productprice ?? '0.0') * int.parse(p.quantity ?? '0');
     }
     return totalLastSale.toString();
   }
@@ -150,12 +174,15 @@ for(var v in data){
     required String customStartDate,
     required String customEndDate,
   }) {
-    List<SalesModel> filteredDataList = [];
-    List<Datum> filteredCustomers = [];
-    List<InventoryItem> filteredProducts = [];
+    _filteredDataList.clear();
+    _filteredCustomers.clear();
+    _filteredProducts.clear();
+    // List<SalesModel> filteredDataList = [];
+    // List<Datum> filteredCustomers = [];
+    // List<InventoryItem> filteredProducts = [];
 
     final now = DateTime.now();
-    final DateFormat dateFormat = DateFormat('dd-MM-yyyy');
+    final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
     late DateTime rangeStart;
     late DateTime rangeEnd;
 
@@ -215,30 +242,30 @@ for(var v in data){
         for (InventoryItem product in customer.soldProducts ?? []) {
           DateTime? productDate =
               product.date != null ? dateFormat.parse(product.date!) : null;
-
+          print("product Date ${product.date} $rangeStart $rangeEnd");
           if (productDate != null &&
               productDate.isAfter(rangeStart.subtract(Duration(days: 1))) &&
               productDate.isBefore(rangeEnd.add(Duration(days: 1)))) {
-            filteredProducts.add(product);
+            _filteredProducts.add(product);
             totalValue += double.parse(product.productprice ?? '0.0') *
-                int.parse(product.quantity??'0');
+                int.parse(product.quantity ?? '0');
+            totalPaidBalance +=
+                double.tryParse(customer.paidBalance ?? '0.0') ?? 0.0;
             print('Total Value ${totalValue}');
           }
         }
 
         if (filteredProducts.isNotEmpty) {
-          filteredCustomers.add(
-              customer.copyWith(soldProducts: List.from(filteredProducts)));
+          _filteredCustomers.add(
+              customer.copyWith(soldProducts: List.from(_filteredProducts)));
         }
-
-        totalPaidBalance +=
-            double.tryParse(customer.paidBalance ?? '0.0') ?? 0.0;
       }
 
       if (filteredCustomers.isNotEmpty) {
-        filteredDataList.add(
-          record.copyWith(data: List.from(filteredCustomers)),
+        _filteredDataList.add(
+          record.copyWith(data: List.from(_filteredCustomers)),
         );
+        notifyListeners();
       }
     }
 
@@ -256,42 +283,56 @@ for(var v in data){
 
   //Customer Report
   TextEditingController search = TextEditingController();
-  String getRemainingBalance(List<Datum> values) {
+  String getRemainingBalance(List<ReportData> values) {
     double total = 0.0;
 
     for (var value in values) {
-      // Parse each string to a double and add it to the total
-      total += double.tryParse(value.remainigBalance ?? '0.0') ??
-          0.0; // If parsing fails, add 0.0
+      for (ReportModel v in value.data ?? [])
+        total = total +
+            (double.parse(v.sales ?? '0.0') -
+                double.parse(
+                    v.paidBalance ?? '0.0')); // If parsing fails, add 0.0
     }
 
     return total.toString();
   }
-  String getSingleRemainingBalance(List<Datum> values,int id) {
+
+  String getSingleRemainingBalance(List<Datum> values, int id) {
     double total = 0.0;
 
     for (var value in values) {
-      if(value.customerId ==id){
-      // Parse each string to a double and add it to the total
-      total += double.tryParse(value.remainigBalance ?? '0.0') ??
-          0.0; // If parsing fails, add 0.0
-    }}
+      if (value.customerId == id) {
+        // Parse each string to a double and add it to the total
+        total += double.tryParse(value.remainigBalance ?? '0.0') ??
+            0.0; // If parsing fails, add 0.0
+      }
+    }
 
     return total.toString();
   }
-String customerSupplierRemainingBalance(List<SalesModel> values,int id) {
+
+  String customerSupplierRemainingBalance(List<ReportModel> values) {
     double total = 0.0;
-for(var v in values){
-    for (var value in v.data) {
-      if(value.customerId ==id){
-      // Parse each string to a double and add it to the total
-      total += double.tryParse(value.remainigBalance ?? '0.0') ??
-          0.0; // If parsing fails, add 0.0
-    }}
-}
+    // for (var v in values) {
+    //   for (var value in v.data) {
+    //     if (value.customerId == id) {
+    //       // Parse each string to a double and add it to the total
+    //       total += double.tryParse(value.remainigBalance ?? '0.0') ??
+    //           0.0; // If parsing fails, add 0.0
+    //     }
+    //   }
+    // }
+    for (ReportModel m in values) {
+      if (m.sales == '0.0') {
+        total += -double.parse(m.paidBalance ?? '0.0');
+      } else {
+        total += double.parse(m.remainingBalance ?? '0.0');
+      }
+    }
 
     return total.toString();
   }
+
   clearData() {
     _filteredCustomers.clear();
     filteredCustomers.clear();
@@ -324,7 +365,10 @@ for(var v in values){
       if (!exists) {
         _salesList.add(v);
         for (var x in v.data) {
-          bool isExist = _supplierList.any((e) => e.name == x.name);
+          bool isExist = _supplierList.any((e) =>
+              e.name == x.name &&
+              e.customerId == x.customerId &&
+              e.contact == x.contact);
           if (!isExist) {
             _supplierList.add(x);
           }
@@ -355,7 +399,10 @@ for(var v in values){
       if (!exists) {
         _salesList.add(v);
         for (var x in v.data) {
-          bool isExist = _customerList.any((e) => e.name == x.name);
+          bool isExist = _customerList.any((e) =>
+              e.name == x.name &&
+              e.customerId == x.customerId &&
+              e.contact == x.contact);
           if (!isExist) {
             _customerList.add(x);
           }
@@ -364,5 +411,110 @@ for(var v in values){
     }
 
     notifyListeners();
+  }
+
+  List<ReportData> _custmerReport = [];
+  List<ReportData> get customerReport => _custmerReport;
+  getCustomer() async {
+    _custmerReport.clear();
+    final d = await DatabaseHelper().getCustomerReport();
+    _custmerReport.addAll(d);
+    notifyListeners();
+  }
+
+  List<ReportData> _suplierReport = [];
+  List<ReportData> get supplierReport => _suplierReport;
+  getSuppler() async {
+    _suplierReport.clear();
+    final d = await DatabaseHelper().getSupplierReport();
+    _suplierReport.addAll(d);
+    notifyListeners();
+  }
+
+  List<Datum> secondFilterData(List<Datum> data, String secondSelectedType) {
+    DateTime now = DateTime.now();
+
+    switch (secondSelectedType) {
+      case 'Daily':
+        return data.where((customer) {
+          return customer.soldProducts!.any((product) => isSameDay(
+              DateTime(
+                  int.parse(product.date!.split('-')[2]),
+                  int.parse(product.date!.split('-')[1]),
+                  int.parse(product.date!.split('-')[0])),
+              now));
+        }).toList();
+      case 'Weekly':
+        return data.where((customer) {
+          return customer.soldProducts!.any((product) => isSameWeek(
+              DateTime(
+                  int.parse(product.date!.split('-')[2]),
+                  int.parse(product.date!.split('-')[1]),
+                  int.parse(product.date!.split('-')[0])),
+              now));
+        }).toList();
+      case 'Monthly':
+        return data.where((customer) {
+          return customer.soldProducts!.any((product) => isSameMonth(
+              DateTime(
+                  int.parse(product.date!.split('-')[2]),
+                  int.parse(product.date!.split('-')[1]),
+                  int.parse(product.date!.split('-')[0])),
+              now));
+        }).toList();
+      default:
+        return data;
+    }
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  bool isSameWeek(DateTime date1, DateTime date2) {
+    DateTime startOfWeek = date2.subtract(Duration(days: date2.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(Duration(days: 6));
+
+    return date1.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+        date1.isBefore(endOfWeek.add(Duration(days: 1)));
+  }
+
+  bool isSameMonth(DateTime date1, DateTime date2) {
+    return date1.year == date2.year && date1.month == date2.month;
+  }
+
+  Future<void> sendSMS(String phoneNumber, String message) async {
+    if (phoneNumber != '') {
+      final Uri smsUri = Uri(
+        scheme: 'sms',
+        path: phoneNumber,
+        queryParameters: <String, String>{
+          'body': message,
+        },
+      );
+
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        throw 'Could not launch $smsUri';
+      }
+    }
+  }
+
+  Future<void> makePhoneCall(String phoneNumber) async {
+    if (phoneNumber != '') {
+      final Uri phoneUri = Uri(
+        scheme: 'tel',
+        path: phoneNumber,
+      );
+
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        throw 'Could not launch $phoneUri';
+      }
+    }
   }
 }

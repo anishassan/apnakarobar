@@ -17,51 +17,52 @@ Widget expandedTile(
       vertical: 12,
     ),
     decoration: BoxDecoration(
-        color: ColorPalette.green.withOpacity(0.1),
+        color: ColorPalette.white,
         boxShadow: [
           boxShadow(
             context: context,
-            blur: 15,
-            color: Colors.green.withOpacity(0.1),
+            blur: 5,
+            y: 5,
+            color: ColorPalette.black,
             opacity: 0.3,
           ),
         ],
         borderRadius: BorderRadius.circular(20)),
-    child: AnimatedList(
+    child: ListView.builder(
         padding: const EdgeInsets.all(0),
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
-        initialItemCount: dataList.length,
-        itemBuilder: (context, index, animation) {
+        itemCount: dataList.length,
+        itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
               onTap(context.getLocal(dataList[index]));
             },
-            child: SizeTransition(
-              sizeFactor: animation,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  index == 0 ? SizedBox.shrink() : context.heightBox(0.01),
-                  appText(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                index == 0 ? SizedBox.shrink() : context.heightBox(0.01),
+                SizedBox(
+                  width: context.getSize.width,
+                  child: appText(
                     context: context,
                     title: dataList[index],
-                    textColor: ColorPalette.black.withOpacity(0.5),
+                    textColor: ColorPalette.green,
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                   ),
-                  dataList.length - 1 == index
-                      ? SizedBox.shrink()
-                      : context.heightBox(0.01),
-                  dataList.length - 1 == index
-                      ? SizedBox.shrink()
-                      : Container(
-                          height: 1,
-                          color: ColorPalette.black.withOpacity(0.4),
-                          width: context.getSize.width,
-                        )
-                ],
-              ),
+                ),
+                dataList.length - 1 == index
+                    ? SizedBox.shrink()
+                    : context.heightBox(0.01),
+                dataList.length - 1 == index
+                    ? SizedBox.shrink()
+                    : Container(
+                        height: 1,
+                        color: ColorPalette.green,
+                        width: context.getSize.width,
+                      )
+              ],
             ),
           );
         }),

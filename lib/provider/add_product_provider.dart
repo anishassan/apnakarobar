@@ -23,7 +23,7 @@ class AddProductProvider extends ChangeNotifier {
   TextEditingController lastSale = TextEditingController();
   TextEditingController lastPurchase = TextEditingController();
   TextEditingController description = TextEditingController();
-
+  TextEditingController searchProduct = TextEditingController();
 //Sales and purchase
   TextEditingController name = TextEditingController();
   TextEditingController phone = TextEditingController();
@@ -31,8 +31,15 @@ class AddProductProvider extends ChangeNotifier {
   TextEditingController payment = TextEditingController();
   double _remainingBalance = 0.0;
   double get remainingBalance => _remainingBalance;
-  getRemainingBalance() {
-    _remainingBalance = _completePrice - double.parse(payment.text);
+  getRemainingBalanc() {
+    if (dicount.text.isEmpty || dicount.text == '') {
+      _remainingBalance = _completePrice - double.parse(payment.text);
+    } else {
+      _remainingBalance = _completePrice -
+          double.parse(payment.text) -
+          double.parse(dicount.text);
+    }
+
     notifyListeners();
   }
 
@@ -55,18 +62,18 @@ class AddProductProvider extends ChangeNotifier {
     "Box",
     "Pkt",
     "Dozen",
-    "Bottle"
+    "Bottle",
+    "ml",
+    'Tin',
+    'Jar',
+    "Other"
   ];
-  // pickedDate({required BuildContext context}) async {
-  //   DateTime? picked = await showDatePicker(
-  //       context: context,
-  //       firstDate: DateTime.now(),
-  //       lastDate: DateTime.now().add(Duration(days: 360 * 10)));
-  //   if (picked != null) {
-  //     date.text = DateFormat('dd-MM-yyyy').format(picked);
-  //   }
-  //   notifyListeners();
-  // }
+  bool _showUnits = false;
+  bool get showUnits => _showUnits;
+  toggleShowUnit() {
+    _showUnits = !_showUnits;
+    notifyListeners();
+  }
 
   List<ItemModel> _productItems = <ItemModel>[];
   List<ItemModel> get productItems => _productItems;
@@ -110,6 +117,7 @@ class AddProductProvider extends ChangeNotifier {
         _productItems.insert(
             0,
             ItemModel(
+              id: DateTime.now().millisecondsSinceEpoch,
               lastPurchase: lastPurchase.text.isEmpty || lastPurchase.text == ''
                   ? '0.00'
                   : lastPurchase.text,
@@ -128,7 +136,7 @@ class AddProductProvider extends ChangeNotifier {
                   ? '0.00'
                   : totalprice.text,
               stock: unitVal.text + ' ' + _selectedUnit,
-              date: DateFormat('dd-MM-yyyy').format(DateTime.now()),
+              date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
             ));
 
         toggleInsert(true);
@@ -160,12 +168,13 @@ class AddProductProvider extends ChangeNotifier {
         _salesItems.insert(0, d);
         toggleInsert(true);
         _remainingBalance += double.parse(totalprice.text);
-        if (dicount.text.isEmpty) {
-          _completePrice += double.parse(d.totalprice ?? '0.0');
-        } else {
-          _completePrice +=
-              double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
-        }
+        // if (dicount.text.isEmpty) {
+        _completePrice += double.parse(d.totalprice ?? '0.0');
+        // }
+        // else {
+        //   _completePrice +=
+        //       double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
+        // }
       }
     } else if (type == 2) {
       if (_selectedInventoryItem == 'Product/Services') {
@@ -194,14 +203,31 @@ class AddProductProvider extends ChangeNotifier {
         _purchaseItems.insert(0, d);
         toggleInsert(true);
         _remainingBalance += double.parse(totalprice.text);
-        if (dicount.text.isEmpty) {
-          _completePrice += double.parse(d.totalprice ?? '0.0');
-        } else {
-          _completePrice +=
-              double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
-        }
+        // if (dicount.text.isEmpty) {
+        _completePrice += double.parse(d.totalprice ?? '0.0');
+        // } else {
+        //   _completePrice +=
+        //       double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
+        // }
       }
     }
+    notifyListeners();
+  }
+
+  bool _isDiscountAdded = false;
+  bool get isDiscountAdded => _isDiscountAdded;
+  addDiscount() {
+    // _completePrice = _completePrice - double.parse(dicount.text);
+    final dic = _remainingBalance - double.parse(dicount.text);
+
+    _remainingBalance = dic;
+    changeDiscountAdded(true);
+    notifyListeners();
+  }
+
+  changeDiscountAdded(bool val) {
+    _isDiscountAdded = val;
+    print('Is Discount $_isDiscountAdded');
     notifyListeners();
   }
 
@@ -235,7 +261,7 @@ class AddProductProvider extends ChangeNotifier {
     lastPurchase.clear();
 
     payment.clear();
-    dicount.clear();
+
     productprice.clear();
   }
 
@@ -244,6 +270,8 @@ class AddProductProvider extends ChangeNotifier {
     _inventoryList.clear();
     _salesItems.clear();
     _purchaseItems.clear();
+    dicount.clear();
+    changeDiscountAdded(false);
     changePickedDate(DateTime.now());
   }
 
@@ -307,6 +335,9 @@ class AddProductProvider extends ChangeNotifier {
 
   List<InventoryItem> _inventoryList = [];
   List<InventoryItem> get inventoryList => _inventoryList;
+  List<InventoryItem> _filterinventoryList = [];
+  List<InventoryItem> get filterinventoryList => _filterinventoryList;
+
   double _completePrice = 0.0;
   double get completetPrice => _completePrice;
   getInventoryData() async {
@@ -336,33 +367,97 @@ class AddProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  filterInventory(String val) {
+    _filterinventoryList = inventoryList
+        .where((item) => item.title!.toLowerCase().contains(val.toLowerCase()))
+        .toList();
+    notifyListeners();
+  }
+
+  clearInventorySearch() {
+    searchProduct.clear();
+    _filterinventoryList.clear();
+  }
+
   addSalesData(
     List<InventoryItem> data,
     BuildContext context,
     int type,
   ) async {
+    
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
-    } else if (phone.text.isEmpty) {
-      toast(msg: 'Please Enter Customer Phone Number.', context: context);
     } else {
-      bool isSuccess = await DatabaseHelper().addSalesData(SalesModel(
-        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
-        data: [
+      DatabaseHelper().insertOrUpdateData(
+          soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
           Datum(
-            contact: phone.text,
-            customerId: selectedId.text.isEmpty
-                ? _pickedDate.millisecondsSinceEpoch
-                : int.parse(selectedId.text),
-            name: name.text,
+            discount: dicount.text.isEmpty || dicount.text == ''
+                ? '0.0'
+                : dicount.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            customerId: selectedId.text.isEmpty &&
+                    phone.text.isEmpty &&
+                    name.text.isEmpty
+                ? 30000000001
+                : selectedId.text.isEmpty
+                    ? DateTime(
+                            _pickedDate.year,
+                            _pickedDate.month,
+                            _pickedDate.day,
+                            now.hour,
+                            now.minute,
+                            now.second,
+                            now.millisecond)
+                        .millisecondsSinceEpoch
+                    : int.parse(selectedId.text),
+            name: name.text.isEmpty ? 'Walking' : name.text,
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
                 ? '0.0'
                 : payment.text,
-            soldProducts: data.toList(),
+            soldProducts: data
+                .map((e) => e.copyWith(
+                    date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
+                .toList(),
+          ),
+          true,
+          _pickedDate.toString());
+      bool isSuccess = await DatabaseHelper().addSalesData(SalesModel(
+        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
+        data: [
+          Datum(
+            discount: dicount.text.isEmpty || dicount.text == ''
+                ? '0.0'
+                : dicount.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            customerId: selectedId.text.isEmpty &&
+                    phone.text.isEmpty &&
+                    name.text.isEmpty
+                ? 30000000001
+                : selectedId.text.isEmpty
+                    ? DateTime(
+                            _pickedDate.year,
+                            _pickedDate.month,
+                            _pickedDate.day,
+                            now.hour,
+                            now.minute,
+                            now.second,
+                            now.millisecond)
+                        .millisecondsSinceEpoch
+                    : int.parse(selectedId.text),
+            name: name.text.isEmpty ? 'Walking' : name.text,
+            remainigBalance: _remainingBalance.toString(),
+            paidBalance: payment.text.isEmpty || payment.text == ""
+                ? '0.0'
+                : payment.text,
+            soldProducts: data
+                .map((e) => e.copyWith(
+                    date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
+                .toList(),
           )
         ].toList(),
       ));
+
       if (isSuccess) {
         clearAllData();
         clearField();
@@ -375,32 +470,84 @@ class AddProductProvider extends ChangeNotifier {
     }
   }
 
+  DateTime now = DateTime.now();
   addPurchaseData(
       List<InventoryItem> data, BuildContext context, int type) async {
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
-    } else if (phone.text.isEmpty) {
-      toast(msg: 'Please Enter Supplier Phone Number.', context: context);
     } else {
       print(name.text);
       print(phone.text);
-      bool isSuccess = await DatabaseHelper().addPurchaseData(SalesModel(
-        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
-        data: [
+      DatabaseHelper().insertOrUpdateData(
+          soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
           Datum(
-            name: name.text,
-            contact: phone.text,
-            customerId: selectedId.text.isEmpty
-                ? _pickedDate.millisecondsSinceEpoch
-                : int.parse(selectedId.text),
+            discount: dicount.text.isEmpty || dicount.text == ''
+                ? '0.0'
+                : dicount.text,
+            name: name.text.isEmpty ? 'Walking' : name.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            customerId: selectedId.text.isEmpty &&
+                    phone.text.isEmpty &&
+                    name.text.isEmpty
+                ? 30000000001
+                : selectedId.text.isEmpty
+                    ? DateTime(
+                            _pickedDate.year,
+                            _pickedDate.month,
+                            _pickedDate.day,
+                            now.hour,
+                            now.minute,
+                            now.second,
+                            now.millisecond)
+                        .millisecondsSinceEpoch
+                    : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
                 ? '0.0'
                 : payment.text,
-            soldProducts: data,
+            soldProducts: data
+                .map((e) => e.copyWith(
+                    date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
+                .toList(),
+          ),
+          false,
+          _pickedDate.toString());
+      bool isSuccess = await DatabaseHelper().addPurchaseData(SalesModel(
+        soldDate: DateFormat('yyyy-MM-dd').format(_pickedDate),
+        data: [
+          Datum(
+            discount: dicount.text.isEmpty || dicount.text == ''
+                ? '0.0'
+                : dicount.text,
+            name: name.text.isEmpty ? 'Walking' : name.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            customerId: selectedId.text.isEmpty &&
+                    phone.text.isEmpty &&
+                    name.text.isEmpty
+                ? 30000000001
+                : selectedId.text.isEmpty
+                    ? DateTime(
+                            _pickedDate.year,
+                            _pickedDate.month,
+                            _pickedDate.day,
+                            now.hour,
+                            now.minute,
+                            now.second,
+                            now.millisecond)
+                        .millisecondsSinceEpoch
+                    : int.parse(selectedId.text),
+            remainigBalance: _remainingBalance.toString(),
+            paidBalance: payment.text.isEmpty || payment.text == ""
+                ? '0.0'
+                : payment.text,
+            soldProducts: data
+                .map((e) => e.copyWith(
+                    date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
+                .toList(),
           ),
         ],
       ));
+
       if (isSuccess) {
         clearAllData();
         clearField();

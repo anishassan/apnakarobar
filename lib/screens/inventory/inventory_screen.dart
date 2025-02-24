@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,9 @@ import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/size_extension.dart';
 import 'package:sales_management/gen/assets.gen.dart';
+import 'package:sales_management/main.dart';
 import 'package:sales_management/models/inventory_model.dart';
+import 'package:sales_management/provider/dashboard_provider.dart';
 import 'package:sales_management/provider/inventory_provider.dart';
 import 'package:sales_management/screens/inventory/component/delete_product_popup.dart';
 import 'package:sales_management/screens/inventory/component/item_widget.dart';
@@ -28,12 +31,13 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> {
+
   @override
   void initState() {
     // TODO: implement initState
-
+    Provider.of<InventoryProvider>(context, listen: false).getInventoryData(context: context);
+   
     super.initState();
-    Provider.of<InventoryProvider>(context, listen: false).getInventoryData();
   }
 
   @override
@@ -47,9 +51,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
               context.heightBox(0.01),
               textField(
                   onChange: (val) {
+                    provider.addSearchText(val ?? '');
                     if (val != null) {
                       provider.searchInventoryByTitle(
                           provider.inventoryList, val);
+                    } else {
+                      provider.search.clear();
+                      provider.clearFilter();
                     }
                   },
                   suffixIcon: GestureDetector(
@@ -70,7 +78,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   controller: provider.scrollController,
-                  child: provider.filterList.isEmpty
+                  child: provider.searchText == ''
                       ? Column(
                           children: List.generate(provider.inventoryList.length,
                               (index) {
@@ -330,7 +338,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                         0)
                                                             .then((v) {
                                                           provider
-                                                              .getInventoryData();
+                                                              .getInventoryData(context: context);
                                                           Navigator.of(context)
                                                               .pop();
                                                         });

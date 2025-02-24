@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:sales_management/models/all_data_model.dart';
 import 'package:sales_management/models/register_res_model.dart';
 import 'package:sales_management/network/api_services.dart';
 import 'package:sales_management/network/api_url.dart';
@@ -21,7 +22,7 @@ class DioRegisterRepo implements RegisterRepo{
     try{
       final res = await API().postRequest(context, ApiUrl.register, jsonEncode(data));
       if(res.statusCode == 200){
-        // final decode = jsonDecode(res.data);
+  
         
         model = RegisterResModel.fromJson(res.data);
       }else{
@@ -32,6 +33,23 @@ class DioRegisterRepo implements RegisterRepo{
       print(e);
     }
     return model;
+  }
+  
+  @override
+  Future<AllDataModel> getAllData({required BuildContext context, required String email}) async{
+    AllDataModel data = AllDataModel.fromJson({});
+ try{
+  final response = await API().getRequest(context, "${ApiUrl.getCompleteData}/$email");
+ if(response.data['success']== true){
+  
+  data = AllDataModel.fromJson(response.data);
+  print(data.businessInfo?.email??'');
+ }
+
+ }catch(e){
+  print(e);
+ }
+ return data;
   }
   
 }

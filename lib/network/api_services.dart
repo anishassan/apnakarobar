@@ -170,7 +170,7 @@ class API {
         debugPrint("POST Complete:");
       }).catchError((onError) {
         if (ServerError.withError(error: onError).getErrorCode() == 500) {
-          toast(context: context, msg: "SomeThing Went Wrong");
+          // toast(context: context, msg: "SomeThing Went Wrong");
         }
         debugPrint("POST Error: $onError");
         if (onError is SocketException) {
@@ -180,11 +180,11 @@ class API {
             if (ServerError.withError(error: onError).getErrorCode() == 401) {
               //
             } else {
-              toast(
-                  context: context,
-                  msg: ServerError.withError(error: onError)
-                      .getErrorMessage()
-                      .toString());
+              // toast(
+              //     context: context,
+              //     msg: ServerError.withError(error: onError)
+              //         .getErrorMessage()
+              //         .toString());
             }
           }
         }

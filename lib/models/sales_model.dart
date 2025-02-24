@@ -51,6 +51,7 @@ class Datum {
   String? name;
   String? contact;
   String? remainigBalance;
+  String? discount; 
   String? paidBalance;
   List<InventoryItem>? soldProducts;
 
@@ -60,6 +61,7 @@ class Datum {
     this.contact,
     this.remainigBalance,
     this.paidBalance,
+    this.discount,
     this.soldProducts,
   });
 
@@ -67,6 +69,7 @@ class Datum {
         customerId: json["id"],
         name: json["name"],
         contact: json["contact"],
+        discount: json['discount'],
         remainigBalance: json["remainigBalance"],
         paidBalance: json["paidBalance"],
         soldProducts: json["soldProducts"] == null
@@ -78,6 +81,7 @@ class Datum {
   Map<String, dynamic> toJson() => {
         "id": customerId,
         "name": name,
+        "discount":discount,
         "contact": contact,
         "remainigBalance": remainigBalance,
         "paidBalance": paidBalance,

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:sales_management/bindings/routes.dart';
+import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/extensions/validation_extension.dart';
+import 'package:sales_management/models/all_data_model.dart';
+import 'package:sales_management/models/inventory_model.dart';
+import 'package:sales_management/models/item_model.dart';
 import 'package:sales_management/models/register_res_model.dart';
+import 'package:sales_management/models/sales_model.dart';
 import 'package:sales_management/repositories/register/register_repo.dart';
 import 'package:sales_management/repositories/storage/storage_repo.dart';
 import 'package:sales_management/utils/toast.dart';
@@ -20,9 +26,10 @@ class RegisterProvider extends ChangeNotifier {
     _loading = val;
     notifyListeners();
   }
+
   bool _isCatAdded = true;
   bool get isCatAdded => _isCatAdded;
-  changeCatAdded(bool val){
+  changeCatAdded(bool val) {
     _isCatAdded = val;
     notifyListeners();
   }
@@ -39,32 +46,201 @@ class RegisterProvider extends ChangeNotifier {
       toast(msg: 'Enter valid email please', context: context);
     } else if (contact.text.isEmpty) {
       toast(msg: 'Enter your phone number please', context: context);
-    }else if(category.text.isEmpty){
+    } else if (category.text.isEmpty) {
       changeCatAdded(false);
       toast(msg: 'Please enter business category', context: context);
     } else {
       changeLoading(true);
       final data = await repo.register(
-        category: category.text,
+          category: category.text,
           context: context,
           name: name.text,
           email: email.text,
           address: address.text,
           contact: contact.text);
       if (data.success != null) {
-        if(data.success == false){
-          toast(msg: 'Email already exist please try again with new email.', context: context);
-        }else{
-        storage.setEmail(email.text);
-        print(data.the0!.id);
-        storage.setUid(data.the0!.id.toString() ?? '');
-        storage.setName(data.the0!.title.toString() ?? '');
-        storage.setNumber(data.the0!.contact.toString() ?? '');
-        storage.setAddress(data.the0!.address.toString() ?? '');
-        Navigator.pushReplacementNamed(context, Routes.dashboard);
+        if (data.success == false) {
+          await DatabaseHelper().deleteDatabaseFile().then((val) async {
+            await DatabaseHelper.initDb().then((val) async {
+              final d =
+                  await repo.getAllData(context: context, email: email.text);
+              List<ItemModel> m = d.inventory
+                      ?.map((inv) => ItemModel(
+                            id: inv.id,
+                            title: inv.title,
+                            totalprice: ((inv.currentStock ?? 0) *
+                                    (inv.currentValue ?? 0))
+                                .toString(),
+                            productprice: inv.currentValue.toString(),
+                            lastSale: inv.salePrice.toString(),
+                            lastPurchase: inv.purchasePrice.toString(),
+                            desc:
+                                inv.description == null ? '' : inv.description,
+                            quantity: inv.currentStock.toString(),
+                            stock: inv.measurement,
+                            date:
+                                DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                          ))
+                      .toList() ??
+                  [];
+
+              bool ok = await DatabaseHelper.addInventory(m);
+              if (ok == true) {
+                print('Geeting Data +++++++++++++ insert');
+              }
+
+              for (Purchase s in d.sales ?? []) {
+                DatabaseHelper().addSalesData((SalesModel(
+                  soldDate: s.soldDate ?? '',
+                  id: s.id,
+                  data: s.data
+                          ?.map((e) => Datum(
+                                customerId: e.id,
+                                name: e.name,
+                                soldProducts: e.soldProducts
+                                        ?.map((prod) => InventoryItem(
+                                            id: prod.id,
+                                            title: prod.title,
+                                            date: prod.date,
+                                            totalprice:
+                                                prod.totalprice.toString(),
+                                            productprice:
+                                                prod.productprice.toString(),
+                                            quantity: prod.quantity.toString(),
+                                            desc: prod.desc,
+                                            buySaleQuantity:
+                                                prod.buySaleQ.toString(),
+                                            lastPurchase:
+                                                prod.lastPurchase.toString(),
+                                            lastSale: prod.lastSale.toString(),
+                                            stock: prod.stock))
+                                        .toList() ??
+                                    [],
+                                contact: e.contact,
+                                remainigBalance: e.remainigBalance.toString(),
+                                paidBalance: e.paidBalance.toString(),
+                                discount: e.discount.toString(),
+                              ))
+                          .toList() ??
+                      [],
+                )));
+                for (Datum2 sup in s.data ?? []) {
+                  DatabaseHelper().insertOrUpdateData(
+                      Datum(
+                        customerId: sup.id,
+                        name: sup.name,
+                        soldProducts: sup.soldProducts
+                                ?.map((prod) => InventoryItem(
+                                    id: prod.id,
+                                    title: prod.title,
+                                    date: prod.date,
+                                    totalprice: prod.totalprice.toString(),
+                                    productprice: prod.productprice.toString(),
+                                    quantity: prod.quantity.toString(),
+                                    desc: prod.desc,
+                                    buySaleQuantity: prod.buySaleQ.toString(),
+                                    lastPurchase: prod.lastPurchase.toString(),
+                                    lastSale: prod.lastSale.toString(),
+                                    stock: prod.stock))
+                                .toList() ??
+                            [],
+                        contact: sup.contact,
+                        remainigBalance: sup.remainigBalance.toString(),
+                        paidBalance: sup.paidBalance.toString(),
+                        discount: sup.discount.toString(),
+                      ),
+                      true,
+                      s.soldDate ?? '',
+                      soldDate: s.soldDate ?? '');
+                }
+              }
+
+              for (Purchase s in d.purchases ?? []) {
+                DatabaseHelper().addPurchaseData(SalesModel(
+                  soldDate: s.soldDate ?? '',
+                  id: s.id,
+                  data: s.data
+                          ?.map((e) => Datum(
+                                customerId: e.id,
+                                name: e.name,
+                                soldProducts: e.soldProducts
+                                        ?.map((prod) => InventoryItem(
+                                            id: prod.id,
+                                            title: prod.title,
+                                            date: prod.date,
+                                            totalprice:
+                                                prod.totalprice.toString(),
+                                            productprice:
+                                                prod.productprice.toString(),
+                                            quantity: prod.quantity.toString(),
+                                            desc: prod.desc,
+                                            buySaleQuantity:
+                                                prod.buySaleQ.toString(),
+                                            lastPurchase:
+                                                prod.lastPurchase.toString(),
+                                            lastSale: prod.lastSale.toString(),
+                                            stock: prod.stock))
+                                        .toList() ??
+                                    [],
+                                contact: e.contact,
+                                remainigBalance: e.remainigBalance.toString(),
+                                paidBalance: e.paidBalance.toString(),
+                                discount: e.discount.toString(),
+                              ))
+                          .toList() ??
+                      [],
+                ));
+                for (Datum2 sup in s.data ?? []) {
+                  DatabaseHelper().insertOrUpdateData(
+                      Datum(
+                        customerId: sup.id,
+                        name: sup.name,
+                        soldProducts: sup.soldProducts
+                                ?.map((prod) => InventoryItem(
+                                    id: prod.id,
+                                    title: prod.title,
+                                    date: prod.date,
+                                    totalprice: prod.totalprice.toString(),
+                                    productprice: prod.productprice.toString(),
+                                    quantity: prod.quantity.toString(),
+                                    desc: prod.desc,
+                                    buySaleQuantity: prod.buySaleQ.toString(),
+                                    lastPurchase: prod.lastPurchase.toString(),
+                                    lastSale: prod.lastSale.toString(),
+                                    stock: prod.stock))
+                                .toList() ??
+                            [],
+                        contact: sup.contact,
+                        remainigBalance: sup.remainigBalance.toString(),
+                        paidBalance: sup.paidBalance.toString(),
+                        discount: sup.discount.toString(),
+                      ),
+                      false,
+                      s.soldDate ?? '',
+                      soldDate: s.soldDate ?? '');
+                }
+              }
+
+              storage.setUid(d.businessInfo?.id.toString() ?? '');
+              storage.setName(d.businessInfo?.title.toString() ?? '');
+              storage.setNumber(d.businessInfo?.contact.toString() ?? '');
+              storage.setAddress(d.businessInfo?.address.toString() ?? '');
+              storage.setEmail(d.businessInfo?.email.toString() ?? '');
+            });
+          });
+
+          Navigator.pushReplacementNamed(context, Routes.dashboard);
+        } else {
+          DatabaseHelper.initDb();
+          storage.setEmail(email.text);
+          print(data.the0!.id);
+          storage.setUid(data.the0!.id.toString() ?? '');
+          storage.setName(data.the0!.title.toString() ?? '');
+          storage.setNumber(data.the0!.contact.toString() ?? '');
+          storage.setAddress(data.the0!.address.toString() ?? '');
+          Navigator.pushReplacementNamed(context, Routes.dashboard);
         }
         changeLoading(false);
-        
       } else {
         changeLoading(false);
       }
@@ -73,21 +249,37 @@ class RegisterProvider extends ChangeNotifier {
 
   List<String> categories = <String>[
     "Medical Store",
-  "Dry Fruit Store",
-  "Tailor Shop",
-  "Fruit Shop",
-  "Mobile easy load",
-  "Mobile Repairing Shop",
-  "Computer Shop",
-  "Chicken Shop",
-  "Restaurant",
-  "Grocery Shop",
+    "Dry Fruit Store",
+    "Tailor Shop",
+    "Fruit Shop",
+    "Mobile easy load",
+    "Mobile Repairing Shop",
+    "Computer Shop",
+    "Chicken Shop",
+    "Restaurant",
+    "Grocery Shop",
+    "Sports Accessories",
+    "Kiryana",
+    "Retailers",
+    "Bakery",
+    "Tailoring",
+    "Beauty parlor",
+    'Book Shop',
+    "Vehical Spear part Shop",
+    "Others",
   ];
 
   bool _showList = false;
   bool get showList => _showList;
-  changeShowlist(){
+  changeShowlist() {
     _showList = !_showList;
+    notifyListeners();
+  }
+
+  bool _readOnly = true;
+  bool get readOnly => _readOnly;
+  toggleReadonly() {
+    _readOnly = !_readOnly;
     notifyListeners();
   }
 }

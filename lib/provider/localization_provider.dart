@@ -29,8 +29,11 @@ class LocalizationProvider extends ChangeNotifier {
 
   // Set new locale
   void setLocale(Locale locale) {
-    if (_locale == locale) return;
+    if (_locale == locale) {
+      load(locale);
+    }else{
     load(locale);
+    }
   }
 
   List<String> langauge = [

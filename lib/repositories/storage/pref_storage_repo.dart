@@ -82,8 +82,10 @@ class PrefStorageRepo implements StorageRepo{
   @override
   Future<String> getLang() async{
   SharedPreferences pref = await SharedPreferences.getInstance();
+  
    return pref.getString(_lang)??'';
-  }
+
+  }   
   
   @override
   Future setLang(String lang)async {

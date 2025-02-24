@@ -22,17 +22,17 @@ class AddProductScreen extends StatefulWidget {
 }
 
 class _AddProductScreenState extends State<AddProductScreen> {
-  late AddProductProvider pv;
+  // late AddProductProvider pv;
   @override
   void initState() {
-    pv = Provider.of<AddProductProvider>(context, listen: false);
+    // pv = Provider.of<AddProductProvider>(context, listen: false);
     // TODO: implement initState
     super.initState();
   }
 
   @override
   void dispose() {
-    pv.clearAllData();
+   
     // TODO: implement dispose
     super.dispose();
   }
@@ -55,6 +55,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           appBar: AppBar(
             leading: GestureDetector(
               onTap: () {
+                 provider.clearAllData();
                 Navigator.pushReplacementNamed(context, Routes.dashboard)
                     .then((e) {
                   Provider.of<DashboardProvider>(context, listen: false)
@@ -82,6 +83,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           body: PopScope(
             canPop: false,
             onPopInvoked: (val) {
+                 provider.clearAllData();
               Navigator.pushReplacementNamed(context, Routes.dashboard)
                   .then((e) {
                 Provider.of<DashboardProvider>(context, listen: false)

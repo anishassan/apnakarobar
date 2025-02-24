@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/gestures.dart';
@@ -22,6 +23,8 @@ import 'package:sales_management/utils/loading.dart';
 import 'package:sales_management/utils/text_button.dart';
 import 'package:sales_management/utils/text_field.dart';
 
+import '../../db/database_helper.dart';
+
 class RegisterScreen extends StatefulWidget {
   RegisterScreen({super.key});
 
@@ -33,6 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late Timer timer;
   @override
   void initState() {
+    print(DateTime.now());
     autoLogin(context: context, storage: getIt()).whenComplete(() {
       if (_isLoggedIn == false) {
         timer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -61,7 +65,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     print('$email, $uid');
     if (email != '' && uid != '') {
       checkLogin(false);
-      Navigator.pushReplacementNamed(context, Routes.dashboard);
+      DatabaseHelper.initDb().then((val) {
+        Navigator.pushReplacementNamed(context, Routes.dashboard);
+      });
     } else {
       checkLogin(false);
       checkInternetConnectivity();
@@ -121,13 +127,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColorPalette.green,
-      // appBar: AppBar(
-      //   title: appText(
-      //     context: context,
-      //     title: "Register Your Business",
-      //     textColor: ColorPalette.green,
-      //   ),
-      // ),
       body: Consumer<RegisterProvider>(
         builder: (context, provider, child) {
           return Stack(
@@ -163,6 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           context.heightBox(0.01),
                           textField(
+                            width: Platform.isMacOS ? 0.4 : 1,
                             context: context,
                             controller: provider.email,
                             hintText: 'Email',
@@ -187,6 +187,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           context.heightBox(0.01),
                           catTextField(
+                            // suffixIcon: GestureDetector(
+                            //   onTap: () {
+                            //     // provider.toggleReadonly();
+                            //   },
+                            //   child: provider.readOnly
+                            //       ? const Icon(
+                            //           Icons.edit,
+                            //           color: ColorPalette.green,
+                            //         )
+                            //       : const Icon(
+                            //           Icons.close,
+                            //           color: ColorPalette.green,
+                            //         ),
+                            // ),
+                            readOnly: provider.readOnly,
+                            onTap: () {
+                              if (provider.readOnly) {
+                                provider.changeShowlist();
+                              }
+                            },
                             onChange: (val) {
                               if (val != null) {
                                 provider.changeCatAdded(true);
@@ -194,25 +214,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                             isCatAdded:
                                 provider.isCatAdded == false ? false : true,
-                            // readOnly: true,
-                            // onTap: () {
-                            //   provider.changeShowlist();
-                            // },
                             context: context,
                             controller: provider.category,
                             hintText: 'Category',
                           ),
-                          // if (provider.showList) context.heightBox(0.005),
-                          // if (provider.showList)
-                          //   expandedTile(
-                          //       context: context,
-                          //       dataList: provider.categories,
-                          //       onTap: (val) {
-                          //         print(val);
-
-                          //         provider.category.text = val;
-                          //         provider.changeShowlist();
-                          //       }),
+                          if (provider.showList) context.heightBox(0.03),
+                          if (provider.showList)
+                            expandedTile(
+                                context: context,
+                                dataList: provider.categories,
+                                onTap: (val) {
+                                  provider.category.text = val;
+                                  provider.changeShowlist();
+                                }),
                           context.heightBox(0.03),
                           provider.loading
                               ? Center(
@@ -237,7 +251,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     radius: 4,
                                   ),
                                 ),
-
                           context.heightBox(0.01),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,

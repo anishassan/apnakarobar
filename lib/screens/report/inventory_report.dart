@@ -23,7 +23,7 @@ class _InventoryReportState extends State<InventoryReport> {
   @override
   void initState() {
     _salesProvider = Provider.of<SalesProvider>(context, listen: false);
-    Provider.of<InventoryProvider>(context, listen: false).getInventoryData();
+    Provider.of<InventoryProvider>(context, listen: false).getInventoryData(context: context);
     // TODO: implement initState
     super.initState();
   }

@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 import 'package:sales_management/bindings/routes.dart';
 import 'package:sales_management/constant/color.dart';
+import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/locale_extension.dart';
 import 'package:sales_management/gen/assets.gen.dart';
@@ -25,10 +27,12 @@ class DashbaordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     final provider = Provider.of<DashboardProvider>(context, listen: true);
     final localPv = Provider.of<LocalizationProvider>(context, listen: true);
     return Scaffold(
         appBar: AppBar(
+          leading: const SizedBox.shrink(),
           elevation: 0,
           leadingWidth: 0,
           backgroundColor: ColorPalette.green,
@@ -106,9 +110,9 @@ class DashbaordScreen extends StatelessWidget {
       case 0:
         return const InventoryScreen();
       case 1:
-        return const SalesScreen();
-      case 2:
         return const PurchaseScreen();
+      case 2:
+        return const SalesScreen();
       case 3:
         return ReportScreen();
       case 4:

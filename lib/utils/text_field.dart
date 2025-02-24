@@ -6,12 +6,13 @@ import 'package:flutter/widgets.dart';
 import 'package:sales_management/constant/color.dart';
 import 'package:sales_management/extensions/font_size_extension.dart';
 import 'package:sales_management/extensions/locale_extension.dart';
+import 'package:sales_management/extensions/size_extension.dart';
 import 'package:sales_management/utils/box_shadow.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 textField(
     {required BuildContext context,
-    required TextEditingController controller,
+    TextEditingController? controller,
     required String hintText,
     bool isObscure = false,
     Color hintColor = Colors.black,
@@ -19,16 +20,19 @@ textField(
     GestureDetector? suffixIcon,
     GestureDetector? prefixIcon,
     Function(String?)? onChange,
+    Function(String?)? onSubmit,
     Color bgColor = ColorPalette.white,
     double opacity = 1,
     TextInputType textInputType = TextInputType.text,
     bool readOnly = false,
+    double width = 1,
     VoidCallback? onTap}) {
   final border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
     borderSide: BorderSide.none,
   );
   return Container(
+    width: context.getSize.width * width,
     decoration: BoxDecoration(
         color: bgColor.withOpacity(opacity),
         boxShadow: [
@@ -46,6 +50,11 @@ textField(
       onChanged: (String? val) {
         if (onChange != null) {
           onChange(val);
+        }
+      },
+      onFieldSubmitted: (String? v) {
+        if (onSubmit != null) {
+          onSubmit(v);
         }
       },
       obscureText: isObscure,
@@ -78,6 +87,7 @@ textField(
     ),
   );
 }
+
 numberTextField(
     {required BuildContext context,
     required TextEditingController controller,
@@ -111,8 +121,8 @@ numberTextField(
         borderRadius: BorderRadius.circular(20)),
     child: TextFormField(
       inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly, // Allows only numbers
-          ],
+        FilteringTextInputFormatter.digitsOnly, // Allows only numbers
+      ],
       keyboardType: textInputType,
       onTap: onTap,
       onChanged: (String? val) {
@@ -225,20 +235,21 @@ catTextField(
 
 centerTextField(
     {required BuildContext context,
-    required TextEditingController controller,
+    TextEditingController? controller,
     required String hintText,
     bool isObscure = false,
     Color hintColor = Colors.grey,
     bool isPasswordField = false,
     GestureDetector? suffixIcon,
     Function(String?)? onChange,
+    Function(String?)? onChange2,
     bool isCatAdded = true,
     TextInputType textInputType = TextInputType.text,
     bool readOnly = false,
     VoidCallback? onTap}) {
   final border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(4),
-    borderSide: BorderSide(
+    borderSide: const BorderSide(
       color: Colors.green,
     ),
   );
@@ -254,6 +265,11 @@ centerTextField(
         ],
         borderRadius: BorderRadius.circular(4)),
     child: TextFormField(
+      onChanged: (String? val) {
+        if (onChange2 != null) {
+          onChange2(val);
+        }
+      },
       keyboardType: textInputType,
       onTap: onTap,
       onFieldSubmitted: (String? val) {
@@ -324,7 +340,7 @@ phoneField(
         ],
         borderRadius: BorderRadius.circular(20)),
     child: InternationalPhoneNumberInput(
-      hintText: hintText,
+      hintText: context.getLocal(hintText),
       hintStyle: TextStyle(
         fontSize: context.fontSize(13),
         fontWeight: FontWeight.w400,

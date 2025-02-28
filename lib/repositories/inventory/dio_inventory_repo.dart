@@ -22,6 +22,7 @@ class DioInventoryRepo implements InventoryRepo{
     "current_stock":int.parse(inventory.quantity??'0'),
     "current_value":double.parse(inventory.productprice??'0.0')
 };
+print("Invenroty UPLOAD DATA ++++++ $data");
 final res = await API().postRequest(context, ApiUrl.inventoryInsert, data);
 if(res.data['success'] == false){
   print('Error ${res.data}');

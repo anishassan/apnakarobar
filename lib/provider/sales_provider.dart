@@ -233,6 +233,6 @@ uploadCustomer(context: context, customer: x, repo: getIt(),storage:getIt());
   }
   uploadSales({required BuildContext context,required List<Datum> customer,required CustomerRepo repo,required String date,required int saleId,required StorageRepo storage}) async{
       String uid = await storage.getUid();
-    await repo.uploadSales(context: context, date: date, saleId: saleId, customer: customer,currentUserId: int.parse(uid));
+    await repo.uploadSales(context: context, date: date, saleId: saleId, customer: customer,currentUserId: int.parse(uid),salesData: salesList);
   }
 }

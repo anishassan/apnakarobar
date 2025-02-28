@@ -218,6 +218,7 @@ class RegisterProvider extends ChangeNotifier {
                       false,
                       s.soldDate ?? '',
                       soldDate: s.soldDate ?? '');
+                
                 }
               }
 

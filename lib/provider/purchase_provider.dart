@@ -227,6 +227,6 @@ uploadSupplier(context: context, supplier: x, repo: getIt(),storage: getIt());
   }
   uploadPurchase({required BuildContext context,required List<Datum> supplier,required SupplierRepo repo,required String date,required int saleId,required StorageRepo storage}) async{
       String uid = await storage.getUid();
-    await repo.uploadPurchase(context: context, date: date, saleId: saleId, supplier: supplier,currentUserId: int.parse(uid));
+    await repo.uploadPurchase(context: context, date: date, saleId: saleId, supplier: supplier,currentUserId: int.parse(uid),purchaseData: salesList);
   }
 }

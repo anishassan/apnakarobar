@@ -39,6 +39,7 @@ class DioSupplierRepo implements SupplierRepo {
       {required BuildContext context,
       required String date,
       required int saleId,
+      required List<SalesModel> purchaseData,
       required int currentUserId,
       required List<Datum> supplier}) async {
     try {
@@ -68,7 +69,7 @@ class DioSupplierRepo implements SupplierRepo {
             .toList(),
       );
 
-      print("MODEL DATA ${model.toJson()}");
+      print("MODEL DATA ${date}");
       // List<int?> productId = supplier.soldProducts!.map((e) => e.id).toList();
       // List<int?> quantity =
       //     supplier.soldProducts!.map((e) => int.parse(e.buySaleQuantity??'0')).toList();
@@ -99,8 +100,37 @@ class DioSupplierRepo implements SupplierRepo {
       //       ? 'paid'
       //       : "unpaid"
       // };
-      final response = await API()
-          .postRequest(context, ApiUrl.purchaseInsert, model.toJson());
+      // List<Map<String, dynamic>> data = purchaseData
+      //     .map((e) => PostPurchaseModel(
+      //             businessId: currentUserId,
+      //             data: e.data
+      //                 .map((x) => PostSupplier(
+      //                       discount: int.tryParse(x.discount ?? '0') ?? 0,
+      //                       supplierId: x.customerId,
+      //                       soldDate: e.soldDate,
+      //                       paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
+      //                       soldProducts: x.soldProducts!
+      //                               .map((s) => PostSoldProduct(
+      //                                     title: s.title,
+      //                                     price: (double.tryParse(
+      //                                                 s.productprice ??
+      //                                                     '0.0') ??
+      //                                             0.0)
+      //                                         .toInt(),
+      //                                     id: s.id,
+      //                                     quantity: int.tryParse(
+      //                                             s.buySaleQuantity ?? '0') ??
+      //                                         0,
+      //                                   ))
+      //                               .toList() ??
+      //                           [],
+      //                     ))
+      //                 .toList())
+      //         .toJson())
+      //     .toList();
+// print("PURCHASE DATA IS  ********** $data");
+      final response = await API().postRequest(context, ApiUrl.purchaseInsert,
+ jsonEncode(model));
       if (response.data['success'] == true) {
         print('Purchase Upload Successfully ${response.data}');
         print(response.data);

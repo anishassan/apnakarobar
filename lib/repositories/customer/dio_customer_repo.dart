@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:sales_management/models/post_purchase_model.dart';
 import 'package:sales_management/models/post_sale_model.dart';
@@ -20,6 +22,7 @@ class DioCustomerRepo implements CustomerRepo {
         "contact": customer.contact,
         "balance": double.parse(customer.remainigBalance ?? '0.0')
       };
+      print("Customer Data JSON ++++++++++++++ $data");
       final response =
           await API().postRequest(context, ApiUrl.customerInsert, data);
       if (response.statusCode == 200) {
@@ -39,10 +42,10 @@ class DioCustomerRepo implements CustomerRepo {
       required String date,
       required int saleId,
       required int currentUserId,
+      required List<SalesModel> salesData,
       required List<Datum> customer}) async {
     try {
-     
-      final model = PostSaleModel(
+      final  model = PostSaleModel(
         businessId: currentUserId,
         data: customer
             .map((e) => PostCustomer(
@@ -66,10 +69,33 @@ class DioCustomerRepo implements CustomerRepo {
                 ))
             .toList(),
       );
-
-      print("SALES MODEL ${model.toJson()}");
-      final response =
-          await API().postRequest(context, ApiUrl.salesInsert, model.toJson());
+      print("Current User ID $currentUserId");
+//       List<Map<String, dynamic>> data =
+//           salesData.map((e) => PostSaleModel(
+// businessId: currentUserId,
+// data: e.data.map((x)=> PostCustomer(
+//   discount: int.tryParse(x.discount ?? '0') ?? 0,
+//                   customerId: x.customerId,
+//                   soldDate: e.soldDate,
+//                     paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
+//                     soldProducts: x.soldProducts!
+//                           .map((s) => PostSoldProduct(
+//                                 title: s.title,
+//                                 price:
+//                                     (double.tryParse(s.productprice ?? '0.0') ??
+//                                             0.0)
+//                                         .toInt(),
+//                                 id: s.id,
+//                                 quantity:
+//                                     int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
+//                               ))
+//                           .toList() ??
+//                       [],
+// )).toList()
+//           ).toJson()).toList();
+//       print("SALES MODEL DATA *************** ${model.toJson()}");
+      final response = await API()
+          .postRequest(context, ApiUrl.salesInsert, jsonEncode(model.toJson()));
       if (response.data['success'] == true) {
         print('Sales Upload Successfully');
         print(response.data);

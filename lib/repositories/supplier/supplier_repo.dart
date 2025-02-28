@@ -8,5 +8,5 @@ required  Datum supplier,
 required int currentUserId
   });
 
-  Future uploadPurchase({required BuildContext context,required String date, required int currentUserId,required int saleId, required List<Datum> supplier});
+  Future uploadPurchase({required BuildContext context,required String date,required List<SalesModel> purchaseData, required int currentUserId,required int saleId, required List<Datum> supplier});
 }

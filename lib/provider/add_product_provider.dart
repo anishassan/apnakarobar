@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -378,12 +380,14 @@ class AddProductProvider extends ChangeNotifier {
     searchProduct.clear();
     _filterinventoryList.clear();
   }
-
+ Random num1 = Random(1000);
+    Random num2 = Random(1000);
   addSalesData(
     List<InventoryItem> data,
     BuildContext context,
     int type,
   ) async {
+   
     
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
@@ -394,11 +398,11 @@ class AddProductProvider extends ChangeNotifier {
             discount: dicount.text.isEmpty || dicount.text == ''
                 ? '0.0'
                 : dicount.text,
-            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            contact: phone.text.isEmpty ? '0300 00000 ${num1.nextInt(999)+num2.nextInt(999)}' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001
+                ? 30000000001+num1.nextInt(999)+num2.nextInt(999)
                 : selectedId.text.isEmpty
                     ? DateTime(
                             _pickedDate.year,
@@ -408,7 +412,7 @@ class AddProductProvider extends ChangeNotifier {
                             now.minute,
                             now.second,
                             now.millisecond)
-                        .millisecondsSinceEpoch
+                        .millisecondsSinceEpoch + num1.nextInt(999) + num2.nextInt(999)
                     : int.parse(selectedId.text),
             name: name.text.isEmpty ? 'Walking' : name.text,
             remainigBalance: _remainingBalance.toString(),
@@ -429,11 +433,11 @@ class AddProductProvider extends ChangeNotifier {
             discount: dicount.text.isEmpty || dicount.text == ''
                 ? '0.0'
                 : dicount.text,
-            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            contact: phone.text.isEmpty ? '0300 00000${num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001
+                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
                 : selectedId.text.isEmpty
                     ? DateTime(
                             _pickedDate.year,
@@ -443,7 +447,7 @@ class AddProductProvider extends ChangeNotifier {
                             now.minute,
                             now.second,
                             now.millisecond)
-                        .millisecondsSinceEpoch
+                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
                     : int.parse(selectedId.text),
             name: name.text.isEmpty ? 'Walking' : name.text,
             remainigBalance: _remainingBalance.toString(),
@@ -485,11 +489,11 @@ class AddProductProvider extends ChangeNotifier {
                 ? '0.0'
                 : dicount.text,
             name: name.text.isEmpty ? 'Walking' : name.text,
-            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            contact: phone.text.isEmpty ? '0300 00000${ num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001
+                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
                 : selectedId.text.isEmpty
                     ? DateTime(
                             _pickedDate.year,
@@ -499,7 +503,7 @@ class AddProductProvider extends ChangeNotifier {
                             now.minute,
                             now.second,
                             now.millisecond)
-                        .millisecondsSinceEpoch
+                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
                     : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
@@ -520,11 +524,11 @@ class AddProductProvider extends ChangeNotifier {
                 ? '0.0'
                 : dicount.text,
             name: name.text.isEmpty ? 'Walking' : name.text,
-            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
+            contact: phone.text.isEmpty ? '0300 00000${ num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001
+                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
                 : selectedId.text.isEmpty
                     ? DateTime(
                             _pickedDate.year,
@@ -534,7 +538,7 @@ class AddProductProvider extends ChangeNotifier {
                             now.minute,
                             now.second,
                             now.millisecond)
-                        .millisecondsSinceEpoch
+                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
                     : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""

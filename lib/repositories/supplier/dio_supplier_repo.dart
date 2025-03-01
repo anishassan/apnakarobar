@@ -129,8 +129,30 @@ class DioSupplierRepo implements SupplierRepo {
       //         .toJson())
       //     .toList();
 // print("PURCHASE DATA IS  ********** $data");
-      final response = await API().postRequest(context, ApiUrl.purchaseInsert,
- jsonEncode(model));
+      List<Map<String, dynamic>> newSalesList = [];
+      for (var d in purchaseData) {
+        for (var x in d.data) {
+          newSalesList.add(PostSupplier(
+            discount: int.tryParse(x.discount ?? '0') ?? 0,
+            supplierId: x.customerId,
+            soldDate: d.soldDate,
+            paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
+            soldProducts: (x.soldProducts ?? [])
+                .map((s) => PostSoldProduct(
+                      title: s.title,
+                      price: (double.tryParse(s.productprice ?? '0.0') ?? 0.0)
+                          .toInt(),
+                      id: s.id,
+                      quantity: int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
+                    ))
+                .toList(),
+          ).toJson());
+        }
+      }
+      final response = await API().postRequest(context, ApiUrl.purchaseInsert, {
+        "business_id": currentUserId,
+        "data": newSalesList,
+      });
       if (response.data['success'] == true) {
         print('Purchase Upload Successfully ${response.data}');
         print(response.data);

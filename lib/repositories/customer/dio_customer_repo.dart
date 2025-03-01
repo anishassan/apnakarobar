@@ -45,57 +45,59 @@ class DioCustomerRepo implements CustomerRepo {
       required List<SalesModel> salesData,
       required List<Datum> customer}) async {
     try {
-      final  model = PostSaleModel(
-        businessId: currentUserId,
-        data: customer
-            .map((e) => PostCustomer(
-                  discount: int.tryParse(e.discount ?? '0') ?? 0,
-                  customerId: e.customerId,
-                  soldDate: date,
-                  paidAmount: int.tryParse(e.paidBalance ?? '0') ?? 0,
-                  soldProducts: e.soldProducts!
-                          .map((s) => PostSoldProduct(
-                                title: s.title,
-                                price:
-                                    (double.tryParse(s.productprice ?? '0.0') ??
-                                            0.0)
-                                        .toInt(),
-                                id: s.id,
-                                quantity:
-                                    int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
-                              ))
-                          .toList() ??
-                      [],
-                ))
-            .toList(),
-      );
-      print("Current User ID $currentUserId");
-//       List<Map<String, dynamic>> data =
-//           salesData.map((e) => PostSaleModel(
-// businessId: currentUserId,
-// data: e.data.map((x)=> PostCustomer(
-//   discount: int.tryParse(x.discount ?? '0') ?? 0,
-//                   customerId: x.customerId,
-//                   soldDate: e.soldDate,
-//                     paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
-//                     soldProducts: x.soldProducts!
-//                           .map((s) => PostSoldProduct(
-//                                 title: s.title,
-//                                 price:
-//                                     (double.tryParse(s.productprice ?? '0.0') ??
-//                                             0.0)
-//                                         .toInt(),
-//                                 id: s.id,
-//                                 quantity:
-//                                     int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
-//                               ))
-//                           .toList() ??
-//                       [],
-// )).toList()
-//           ).toJson()).toList();
-//       print("SALES MODEL DATA *************** ${model.toJson()}");
-      final response = await API()
-          .postRequest(context, ApiUrl.salesInsert, jsonEncode(model.toJson()));
+      // final model = PostSaleModel(
+      //   businessId: currentUserId,
+      //   data: customer
+      //       .map((e) => PostCustomer(
+      //             discount: int.tryParse(e.discount ?? '0') ?? 0,
+      //             customerId: e.customerId,
+      //             soldDate: date,
+      //             paidAmount: int.tryParse(e.paidBalance ?? '0') ?? 0,
+      //             soldProducts: e.soldProducts!
+      //                     .map((s) => PostSoldProduct(
+      //                           title: s.title,
+      //                           price:
+      //                               (double.tryParse(s.productprice ?? '0.0') ??
+      //                                       0.0)
+      //                                   .toInt(),
+      //                           id: s.id,
+      //                           quantity:
+      //                               int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
+      //                         ))
+      //                     .toList() ??
+      //                 [],
+      //           ))
+      //       .toList(),
+      // );
+      List<Map<String, dynamic>> newSalesList = [];
+      for (var d in salesData) {
+        for (var x in d.data) {
+          newSalesList.add(PostCustomer(
+            discount: int.tryParse(x.discount ?? '0') ?? 0,
+            customerId: x.customerId,
+            soldDate: d.soldDate,
+            paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
+            soldProducts: (x.soldProducts ?? [])
+                .map((s) => PostSoldProduct(
+                      title: s.title,
+                      price: (double.tryParse(s.productprice ?? '0.0') ?? 0.0)
+                          .toInt(),
+                      id: s.id,
+                      quantity: int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
+                    ))
+                .toList(),
+          ).toJson());
+        }
+      }
+
+      print("SALES MODEL DATA *************** ${newSalesList.length}");
+      final response = await API().postRequest(
+          context,
+          ApiUrl.salesInsert,
+          jsonEncode({
+            "business_id": currentUserId,
+            "data": newSalesList,
+          }));
       if (response.data['success'] == true) {
         print('Sales Upload Successfully');
         print(response.data);
@@ -103,7 +105,7 @@ class DioCustomerRepo implements CustomerRepo {
         print('Sales Upload Error: ${response.data}');
       }
     } catch (e) {
-      print(e);
+      print("SALES ERROR IS $e");
     }
   }
 }

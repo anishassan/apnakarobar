@@ -22,7 +22,7 @@ class DatabaseHelper {
   static const String _purchase = 'purchase';
   static const String _customerReport = 'customerreport';
   static const String _supplierReport = 'supplierreport';
-  static const String _path = 'apnakarobar.db';
+  static const String _path = 'startapnakarobar.db';
   static const String _soldProducts = 'soldProducts';
 
 // static Future<String> saveDatabaseToDownloads(String dbName) async {

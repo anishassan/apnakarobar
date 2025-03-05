@@ -228,7 +228,7 @@ class DatabaseHelper {
           'lastSale': row['lastSale'],
           'lastPurchase': row['lastPurchase'],
           'desc': row['desc'],
-          'type':row['type'],
+          'type': row['type'],
           'stock': row['stock'],
         });
       }
@@ -403,7 +403,8 @@ class DatabaseHelper {
             final inventoryItem = inventoryResult.first;
             final currentStock =
                 double.parse(inventoryItem['quantity']?.toString() ?? '0');
-            final newStock = currentStock - double.parse(product.quantity??'0.0');
+            final newStock =
+                currentStock - double.parse(product.quantity ?? '0.0');
 
             await _db!.update(
               _inventory,
@@ -488,7 +489,7 @@ class DatabaseHelper {
                     existingCustomer.soldProducts![existingProductIndex];
                 existingProduct.quantity =
                     (double.parse(existingProduct.quantity) +
-                            double.parse(product.quantity))
+                            double.parse(product.buySaleQuantity ?? '0.0'))
                         .toStringAsFixed(1);
               } else {
                 // Add new product
@@ -529,7 +530,7 @@ class DatabaseHelper {
             //     ? 0
             //     : int.parse(inventoryItem.quantity ?? '0');
             final newStock = double.parse(product.quantity ?? '0.0');
-
+            print("NEW STOCK +++++++$newStock");
             // Update inventory quantity and additional fields
             await _db!.update(
               _inventory,

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_management/bindings/routes.dart';
 import 'package:sales_management/constant/color.dart';
+import 'package:sales_management/constant/enums.dart';
 import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/size_extension.dart';
@@ -31,12 +32,12 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> {
-
   @override
   void initState() {
     // TODO: implement initState
-    Provider.of<InventoryProvider>(context, listen: false).getInventoryData(context: context);
-   
+    Provider.of<InventoryProvider>(context, listen: false)
+        .getInventoryData(context: context);
+
     super.initState();
   }
 
@@ -151,6 +152,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                       textAlign: TextAlign.left,
                                                       fontSize: 14,
                                                       context: context,
+                                                      title: 'Type')),
+                                              DataColumn(
+                                                  label: appText(
+                                                      textAlign: TextAlign.left,
+                                                      fontSize: 14,
+                                                      context: context,
                                                       title: 'Product Title')),
                                               DataColumn(
                                                   label: appText(
@@ -205,27 +212,43 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                       .resolveWith<Color?>(
                                                     (Set<MaterialState>
                                                         states) {
-                                                      int quantity = item
+                                                      double quantity = item
                                                                   .quantity ==
                                                               ""
                                                           ? 0
-                                                          : int.parse(
+                                                          : double.parse(
                                                               item.quantity);
-                                                      if (quantity < 10 &&
-                                                          quantity > 0) {
-                                                        return ColorPalette
-                                                            .amber
-                                                            .withOpacity(
-                                                                0.2); // Light red for low quantity
-                                                      } else if (quantity <=
-                                                          0) {
-                                                        return ColorPalette.red
-                                                            .withOpacity(0.3);
+                                                      if (item.type ==
+                                                          ModuleType
+                                                              .services.name) {
+                                                        return null;
+                                                      } else {
+                                                        if (quantity < 10 &&
+                                                            quantity > 0) {
+                                                          return ColorPalette
+                                                              .amber
+                                                              .withOpacity(
+                                                                  0.2); // Light red for low quantity
+                                                        } else if (quantity <=
+                                                            0) {
+                                                          return ColorPalette
+                                                              .red
+                                                              .withOpacity(0.3);
+                                                        }
                                                       }
                                                       return null; // Default row color
                                                     },
                                                   ),
                                                   cells: [
+                                                    DataCell(Align(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: appText(
+                                                            context: context,
+                                                            title: item.type
+                                                                    ?.toUpperCase() ??
+                                                                '',
+                                                            fontSize: 14))),
                                                     DataCell(Align(
                                                         alignment: Alignment
                                                             .centerLeft,
@@ -338,7 +361,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                                         0)
                                                             .then((v) {
                                                           provider
-                                                              .getInventoryData(context: context);
+                                                              .getInventoryData(
+                                                                  context:
+                                                                      context);
                                                           Navigator.of(context)
                                                               .pop();
                                                         });

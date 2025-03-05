@@ -99,8 +99,8 @@ uploadSupplier(context: context, supplier: x, repo: getIt(),storage: getIt());
 
   String calculateProductMetrics(List<InventoryItem> products, String metric) {
     if (metric == 'quantity') {
-      int totalQuantity = products.fold(
-          0, (sum, item) => sum + int.parse(item.quantity ?? '0'));
+      double totalQuantity = products.fold(
+          0, (sum, item) => sum + double.parse(item.quantity ?? '0'));
       return totalQuantity.toString();
     } else if (metric == 'totalprice') {
       double totalPrice = products.fold(

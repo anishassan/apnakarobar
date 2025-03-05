@@ -131,22 +131,22 @@ checkInternetConnectivity();
   String getTotalProducts(
       List<InventoryItem> item, String quantity, String name) {
     print('Length ${item.length}');
-    int totalProducts = 0;
+    double totalProducts = 0;
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity ?? '0');
+      totalProducts += double.parse(x.quantity ?? '0');
     }
-    return (totalProducts + int.parse(quantity)).toString();
+    return (totalProducts + double.parse(quantity)).toString();
   }
 
   String getSoldProducts(List<InventoryItem> item, String name) {
     print('Length ${item.length}');
-    int totalProducts = 0;
+    double totalProducts = 0;
     List<InventoryItem> d = item.where((e) => e.title == name).toList();
     for (var x in d) {
       print("object ${x.quantity}");
-      totalProducts += int.parse(x.quantity ?? '0');
+      totalProducts += double.parse(x.quantity ?? '0');
     }
     return totalProducts.toString();
   }

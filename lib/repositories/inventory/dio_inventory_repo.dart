@@ -14,12 +14,12 @@ class DioInventoryRepo implements InventoryRepo{
   "business_id":currentUserId,
     "item_id" : inventory.id,
 	  "title":inventory.title,
-    
+    "type":inventory.type,
     "measurement" : inventory.stock,
     "description" :inventory.desc,
     "purchase_price":double.parse(inventory.lastPurchase??'0.0'),
     "sale_price":double.parse(inventory.lastSale??'0.0'),
-    "current_stock":int.parse(inventory.quantity??'0'),
+    "current_stock":double.parse(inventory.quantity??'0'),
     "current_value":double.parse(inventory.productprice??'0.0')
 };
 print("Invenroty UPLOAD DATA ++++++ $data");

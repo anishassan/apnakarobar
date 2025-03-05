@@ -16,10 +16,12 @@ class ItemModel {
     String? quantity;
     int? dateId;
     String? stock;
+    String? type;
 
     ItemModel({
         this.title,
         this.date,
+        this.type,
         this.id,
         this.totalprice,
         this.lastSale,
@@ -41,13 +43,15 @@ class ItemModel {
         quantity: json["quantity"],
         dateId:json['dateId'],
         stock: json["stock"],
-        desc: json['desc']
+        desc: json['desc'],
+        type: json['type'],
     );
 
     Map<String, dynamic> toJson() => {
         "title": title,
         "dateId":dateId,
         "date": date,
+        'type':type,
         "id":id,
         "totalprice": totalprice,
         "productprice": productprice,
@@ -68,10 +72,12 @@ class ItemModel {
     String? productprice,
     String? quantity,
     String? stock,
+    String? type,
     int? dateId,
   }) {
     return ItemModel(
       id: id ?? this.id,
+      type: type ?? this.type,
       title: title ?? this.title,
       date: date ?? this.date,
       totalprice: totalprice ?? this.totalprice,

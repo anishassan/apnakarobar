@@ -94,11 +94,11 @@ class _InventoryReportState extends State<InventoryReport> {
                                     title: item.quantity == ""
                                         ? ""
                                         : 'PKR ' +
-                                            (int.parse(item.quantity ?? '0') *
+                                            (double.parse(item.quantity ?? '0') *
                                                     double.parse(
                                                         item.productprice ??
                                                             '0.0'))
-                                                .toString(),
+                                                .toStringAsFixed(2),
                                   )
                                 ],
                               ),

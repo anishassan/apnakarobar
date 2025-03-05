@@ -99,6 +99,7 @@ class RegisterProvider extends ChangeNotifier {
                                 name: e.name,
                                 soldProducts: e.soldProducts
                                         ?.map((prod) => InventoryItem(
+                                          type: '',
                                             id: prod.id,
                                             title: prod.title,
                                             date: prod.date,
@@ -131,6 +132,7 @@ class RegisterProvider extends ChangeNotifier {
                         name: sup.name,
                         soldProducts: sup.soldProducts
                                 ?.map((prod) => InventoryItem(
+                                  type: '',
                                     id: prod.id,
                                     title: prod.title,
                                     date: prod.date,
@@ -165,6 +167,7 @@ class RegisterProvider extends ChangeNotifier {
                                 name: e.name,
                                 soldProducts: e.soldProducts
                                         ?.map((prod) => InventoryItem(
+                                          type: '',
                                             id: prod.id,
                                             title: prod.title,
                                             date: prod.date,
@@ -197,6 +200,7 @@ class RegisterProvider extends ChangeNotifier {
                         name: sup.name,
                         soldProducts: sup.soldProducts
                                 ?.map((prod) => InventoryItem(
+                                  type: '',
                                     id: prod.id,
                                     title: prod.title,
                                     date: prod.date,

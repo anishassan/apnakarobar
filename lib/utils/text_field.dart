@@ -102,6 +102,7 @@ numberTextField(
     double opacity = 1,
     TextInputType textInputType = TextInputType.text,
     bool readOnly = false,
+    bool isFormatter = true,
     VoidCallback? onTap}) {
   final border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(10),
@@ -120,9 +121,9 @@ numberTextField(
         ],
         borderRadius: BorderRadius.circular(20)),
     child: TextFormField(
-      inputFormatters: [
+      inputFormatters: isFormatter? [
         FilteringTextInputFormatter.digitsOnly, // Allows only numbers
-      ],
+      ]:[],
       keyboardType: textInputType,
       onTap: onTap,
       onChanged: (String? val) {

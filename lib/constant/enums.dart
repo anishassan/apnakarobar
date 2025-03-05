@@ -1,0 +1,1 @@
+enum ModuleType { inventory, services }

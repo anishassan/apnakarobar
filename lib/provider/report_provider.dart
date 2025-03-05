@@ -59,12 +59,12 @@ class ReportProvider extends ChangeNotifier {
 
     for (var datum in data) {
       for (var product in datum.soldProducts!) {
-        totalLastSale += int.parse(product.quantity) *
+        totalLastSale += double.parse(product.quantity) *
             double.parse(product.productprice ?? '0.0');
       }
     }
 
-    return totalLastSale.toString();
+    return totalLastSale.toStringAsFixed(2);
   }
 
   String calculatesingleTotalLastSale(List<Datum> data, int id) {
@@ -73,14 +73,14 @@ class ReportProvider extends ChangeNotifier {
     for (var datum in data) {
       if (datum.customerId == id) {
         for (var product in datum.soldProducts!) {
-          totalLastSale += int.parse(product.buySaleQuantity ?? '0') *
+          totalLastSale += double.parse(product.buySaleQuantity ?? '0') *
               double.parse(product.productprice ?? '0.0');
           print("Single total sale $totalLastSale");
         }
       }
     }
 
-    return totalLastSale.toString();
+    return totalLastSale.toStringAsFixed(2);
   }
 
   String customerSupplierTotalSales(
@@ -102,7 +102,7 @@ class ReportProvider extends ChangeNotifier {
       totalLastSale += double.parse(d.sales ?? '0.0');
     }
 
-    return totalLastSale.toString();
+    return totalLastSale.toStringAsFixed(2);
   }
 
   String calculateTotalPayment(List<Datum> data) {
@@ -113,7 +113,7 @@ class ReportProvider extends ChangeNotifier {
       print("Total Balance ${totalpayment}");
     }
 
-    return totalpayment.toString();
+    return totalpayment.toStringAsFixed(2);
   }
 
   String calculateSingleTotalPayment(List<Datum> data, int id) {
@@ -127,7 +127,7 @@ class ReportProvider extends ChangeNotifier {
       }
     }
 
-    return totalpayment.toString();
+    return totalpayment.toStringAsFixed(2);
   }
 
   String customerSupplierTotalPayment(
@@ -147,17 +147,17 @@ class ReportProvider extends ChangeNotifier {
       totalpayment += double.parse(d.paidBalance ?? '0.0');
     }
 
-    return totalpayment.toString();
+    return totalpayment.toStringAsFixed(2);
   }
 
   String calculateSingleUserSalePurchase(Datum data) {
     double totalLastSale = 0.0;
     print("Quantities ${data.soldProducts!.length}");
     for (InventoryItem p in data.soldProducts ?? []) {
-      totalLastSale +=
-          double.parse(p.productprice ?? '0.0') * int.parse(p.quantity ?? '0');
+      totalLastSale += double.parse(p.productprice ?? '0.0') *
+          double.parse(p.quantity ?? '0');
     }
-    return totalLastSale.toString();
+    return totalLastSale.toStringAsFixed(2);
   }
 
   String _totalSales = '0.0';
@@ -248,7 +248,7 @@ class ReportProvider extends ChangeNotifier {
               productDate.isBefore(rangeEnd.add(Duration(days: 1)))) {
             _filteredProducts.add(product);
             totalValue += double.parse(product.productprice ?? '0.0') *
-                int.parse(product.quantity ?? '0');
+                double.parse(product.quantity ?? '0');
             totalPaidBalance +=
                 double.tryParse(customer.paidBalance ?? '0.0') ?? 0.0;
             print('Total Value ${totalValue}');

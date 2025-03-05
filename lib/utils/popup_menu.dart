@@ -60,6 +60,7 @@ popupMenu(
 popupMenuProduct(
     {required BuildContext context,
     required String selectedItem,
+    bool isSale = false,
     required Function(InventoryItem) onSelect}) {
   return showDialog(
       barrierDismissible: false,
@@ -113,7 +114,7 @@ popupMenuProduct(
                         controller: provider.searchProduct,
                         onChange2: (val) {
                           if (val != null) {
-                            provider.filterInventory(val);
+                            provider.filterInventory(val, isSale);
                           }
                         },
                         context: context,

@@ -30,7 +30,7 @@ class DetailScreen extends StatelessWidget {
     double grandTotal = model.soldProducts!.fold(0.0, (sum, product) {
       // Parse product price and quantity as needed
       double price = double.parse(product.productprice ?? '0.0');
-      int quantity = int.parse(product.buySaleQuantity ?? '0');
+      double quantity = double.parse(product.buySaleQuantity ?? '0');
 
       // Multiply price and quantity, and add to the accumulator
       return sum + (price * quantity);
@@ -176,6 +176,7 @@ class DetailScreen extends StatelessWidget {
                               title: 'Total')),
                     ],
                     rows: model.soldProducts!.map((item) {
+                      print("Sold Products +++++ ${item.type}");
                       return DataRow(cells: [
                         DataCell(Align(
                             alignment: Alignment.centerLeft,
@@ -188,10 +189,10 @@ class DetailScreen extends StatelessWidget {
                               child: appText(
                                   textAlign: TextAlign.center,
                                   context: context,
-                                  title: item.buySaleQuantity == '0' ||
-                                          item.buySaleQuantity == ''
+                                  title: item.quantity == '0' ||
+                                          item.quantity == ''
                                       ? ''
-                                      : item.buySaleQuantity ?? "",
+                                      : item.quantity ?? "",
                                   fontSize: 14)),
                         ),
                         DataCell(
@@ -212,8 +213,7 @@ class DetailScreen extends StatelessWidget {
                                   context: context,
                                   title: (double.parse(
                                               item.productprice ?? '0.0') *
-                                          int.parse(
-                                              item.buySaleQuantity ?? '0'))
+                                          double.parse(item.quantity ?? '0'))
                                       .toStringAsFixed(2),
                                   fontSize: 14)),
                         ),

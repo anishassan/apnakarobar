@@ -22,7 +22,7 @@ class DatabaseHelper {
   static const String _purchase = 'purchase';
   static const String _customerReport = 'customerreport';
   static const String _supplierReport = 'supplierreport';
-  static const String _path = 'startapnakarobar.db';
+  static const String _path = 'aaaaa.db';
   static const String _soldProducts = 'soldProducts';
 
 // static Future<String> saveDatabaseToDownloads(String dbName) async {
@@ -88,7 +88,7 @@ class DatabaseHelper {
             lastPurchase TEXT NOT NULL,
             desc TEXT NOT NULL,
             productprice TEXT NOT NULL,
-            
+            type TEXT NOT NULL,
             quantity TEXT NOT NULL,
             stock TEXT NOT NULL,
             date TEXT NOT NULL,
@@ -205,7 +205,7 @@ class DatabaseHelper {
 
     final result = await _db!.rawQuery('''
       SELECT d.addingDate, i.id AS dataId, i.title, i.date, i.lastPurchase, i.lastSale, i.desc,
-             i.totalprice, i.productprice, i.quantity, i.stock
+             i.totalprice, i.productprice, i.quantity, i.stock, i.type
       FROM $_datesTable d
       LEFT JOIN $_inventory i ON d.id = i.dateId
     ''');
@@ -228,6 +228,7 @@ class DatabaseHelper {
           'lastSale': row['lastSale'],
           'lastPurchase': row['lastPurchase'],
           'desc': row['desc'],
+          'type':row['type'],
           'stock': row['stock'],
         });
       }
@@ -365,9 +366,9 @@ class DatabaseHelper {
                 final existingProduct =
                     existingCustomer.soldProducts![existingProductIndex];
                 existingProduct.quantity =
-                    (int.parse(existingProduct.quantity) +
-                            int.parse(product.quantity))
-                        .toString();
+                    (double.parse(existingProduct.quantity) +
+                            double.parse(product.quantity))
+                        .toStringAsFixed(1);
               } else {
                 existingCustomer.soldProducts!.add(product);
               }
@@ -401,8 +402,8 @@ class DatabaseHelper {
           if (inventoryResult.isNotEmpty) {
             final inventoryItem = inventoryResult.first;
             final currentStock =
-                int.parse(inventoryItem['quantity']?.toString() ?? '0');
-            final newStock = currentStock - int.parse(product.quantity!);
+                double.parse(inventoryItem['quantity']?.toString() ?? '0');
+            final newStock = currentStock - double.parse(product.quantity??'0.0');
 
             await _db!.update(
               _inventory,
@@ -486,9 +487,9 @@ class DatabaseHelper {
                 final existingProduct =
                     existingCustomer.soldProducts![existingProductIndex];
                 existingProduct.quantity =
-                    (int.parse(existingProduct.quantity) +
-                            int.parse(product.quantity))
-                        .toString();
+                    (double.parse(existingProduct.quantity) +
+                            double.parse(product.quantity))
+                        .toStringAsFixed(1);
               } else {
                 // Add new product
                 existingCustomer.soldProducts!.add(product);
@@ -527,7 +528,7 @@ class DatabaseHelper {
             // final currentStock = inventoryItem.quantity == ""
             //     ? 0
             //     : int.parse(inventoryItem.quantity ?? '0');
-            final newStock = int.parse(product.quantity ?? '0');
+            final newStock = double.parse(product.quantity ?? '0.0');
 
             // Update inventory quantity and additional fields
             await _db!.update(

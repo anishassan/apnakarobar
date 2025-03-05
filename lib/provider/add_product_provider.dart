@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_management/bindings/routes.dart';
+import 'package:sales_management/constant/enums.dart';
 import 'package:sales_management/db/database_helper.dart';
 import 'package:sales_management/models/inventory_model.dart';
 import 'package:sales_management/models/item_model.dart';
@@ -52,6 +53,17 @@ class AddProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<String> modulesType = ModuleType.values.map((e) => e.name).toList();
+  ModuleType _selectedModuleType = ModuleType.inventory;
+  ModuleType get selectedModuleType => _selectedModuleType;
+  changeModuleType(dynamic val) {
+    _selectedModuleType = ModuleType.values.firstWhere(
+      (e) => e.name == val,
+      orElse: () => ModuleType.inventory,
+    );
+    notifyListeners();
+  }
+
   List<String> unitsList = [
     "Bags",
     "Kg",
@@ -74,6 +86,13 @@ class AddProductProvider extends ChangeNotifier {
   bool get showUnits => _showUnits;
   toggleShowUnit() {
     _showUnits = !_showUnits;
+    notifyListeners();
+  }
+
+  bool _showModule = false;
+  bool get showModule => _showModule;
+  toggleShowModule() {
+    _showModule = !_showModule;
     notifyListeners();
   }
 
@@ -119,6 +138,7 @@ class AddProductProvider extends ChangeNotifier {
         _productItems.insert(
             0,
             ItemModel(
+              type: selectedModuleType.name,
               id: DateTime.now().millisecondsSinceEpoch,
               lastPurchase: lastPurchase.text.isEmpty || lastPurchase.text == ''
                   ? '0.00'
@@ -132,12 +152,14 @@ class AddProductProvider extends ChangeNotifier {
                   ? '0.00'
                   : productprice.text,
               quantity: quantity.text.isEmpty || quantity.text == ""
-                  ? "0"
+                  ? "0.0"
                   : quantity.text,
               totalprice: totalprice.text.isEmpty || totalprice.text == ""
                   ? '0.00'
                   : totalprice.text,
-              stock: unitVal.text + ' ' + _selectedUnit,
+              stock: selectedModuleType == ModuleType.services
+                  ? ''
+                  : unitVal.text + ' ' + _selectedUnit,
               date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
             ));
 
@@ -148,12 +170,13 @@ class AddProductProvider extends ChangeNotifier {
         toast(msg: 'Please select product first.', context: context);
       } else if (item.quantity == null ||
           item.quantity == '0' ||
-          int.parse(item.quantity ?? '0') < int.parse(quantity.text)) {
+          double.parse(item.quantity ?? '0') <
+              double.parse(quantity.text.isEmpty ? '0' : quantity.text)) {
         toast(msg: 'Do not have enough quantity', context: context);
       } else {
         final d = item.copyWith(
-          lastSale: item.lastSale == "" ? '0.00' : item.lastSale,
-          lastPurchase: item.lastPurchase == "" ? '0.00' : item.lastPurchase,
+          lastSale: item.lastSale == "" ? '0.0' : item.lastSale,
+          lastPurchase: item.lastPurchase == "" ? '0.0' : item.lastPurchase,
           buySaleQuantity: quantity.text.isEmpty || quantity.text == ""
               ? "0"
               : quantity.text,
@@ -169,22 +192,24 @@ class AddProductProvider extends ChangeNotifier {
         );
         _salesItems.insert(0, d);
         toggleInsert(true);
-        _remainingBalance += double.parse(totalprice.text);
-        // if (dicount.text.isEmpty) {
-        _completePrice += double.parse(d.totalprice ?? '0.0');
-        // }
-        // else {
-        //   _completePrice +=
-        //       double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
-        // }
+        if (item.type == ModuleType.services.name) {
+          _remainingBalance += double.parse(productprice.text ?? '0.0');
+
+          _completePrice += double.parse(productprice.text ?? '0.0');
+        } else {
+          _remainingBalance += double.parse(totalprice.text);
+
+          _completePrice += double.parse(d.totalprice ?? '0.0');
+        }
       }
     } else if (type == 2) {
       if (_selectedInventoryItem == 'Product/Services') {
         toast(msg: 'Please select product first.', context: context);
       } else {
         final d = item.copyWith(
-          lastSale: (int.parse(quantity.text) * double.parse(productprice.text))
-              .toString(),
+          lastSale:
+              (double.parse(quantity.text) * double.parse(productprice.text))
+                  .toString(),
           buySaleQuantity: quantity.text.isEmpty || quantity.text == ""
               ? '0'
               : quantity.text,
@@ -193,8 +218,9 @@ class AddProductProvider extends ChangeNotifier {
               : lastPurchase.text,
           quantity: item.quantity.isEmpty || item.quantity == ""
               ? quantity.text
-              : (int.parse(item.quantity ?? '0') + int.parse(quantity.text))
-                  .toString(),
+              : (double.parse(item.quantity ?? '0.0') +
+                      double.parse(quantity.text))
+                  .toStringAsFixed(1),
           productprice: productprice.text.isEmpty || productprice.text == ""
               ? '0.00'
               : productprice.text,
@@ -205,12 +231,8 @@ class AddProductProvider extends ChangeNotifier {
         _purchaseItems.insert(0, d);
         toggleInsert(true);
         _remainingBalance += double.parse(totalprice.text);
-        // if (dicount.text.isEmpty) {
+
         _completePrice += double.parse(d.totalprice ?? '0.0');
-        // } else {
-        //   _completePrice +=
-        //       double.parse(d.totalprice ?? '0.0') - double.parse(dicount.text);
-        // }
       }
     }
     notifyListeners();
@@ -252,7 +274,6 @@ class AddProductProvider extends ChangeNotifier {
     _selectedItem = InventoryItem.fromJson({});
     _selectedInventoryItem = 'Product/Services';
     productprice.clear();
-    // notifyListeners();
   }
 
   clearSalesAndPurchaseField() {
@@ -342,14 +363,25 @@ class AddProductProvider extends ChangeNotifier {
 
   double _completePrice = 0.0;
   double get completetPrice => _completePrice;
-  getInventoryData() async {
+  getInventoryData(bool isSale) async {
     _inventoryList.clear();
     List<Map<String, dynamic>> data = await DatabaseHelper.getInventory();
-    List<InventoryModel> modelList =
-        data.map((e) => InventoryModel.fromJson(e)).toList();
-    for (var item in modelList) {
-      _inventoryList.addAll(item.data);
-
+    if (isSale) {
+      List<InventoryModel> modelList =
+          data.map((e) => InventoryModel.fromJson(e)).toList();
+      for (var item in modelList) {
+        _inventoryList.addAll(item.data);
+      }
+    } else {
+      List<InventoryModel> modelList =
+          data.map((e) => InventoryModel.fromJson(e)).toList();
+      for (var item in modelList) {
+        for (var prod in item.data) {
+          if (prod.type == ModuleType.inventory.name) {
+            _inventoryList.add(prod);
+          }
+        }
+      }
       notifyListeners();
     }
   }
@@ -359,20 +391,34 @@ class AddProductProvider extends ChangeNotifier {
   InventoryItem _selectedItem = InventoryItem.fromJson({});
   InventoryItem get selectedItem => _selectedItem;
   onSelectInventoryItem(InventoryItem val) {
-    // quantity.text = val.quantity ?? '';
-    // productprice.text = val.productprice ?? "";
-    print(val.lastPurchase);
-    unitVal.text = val.stock ?? "";
-    _selectedInventoryItem = val.title ?? '';
+    if (val.type == ModuleType.inventory.name) {
+      // quantity.text = val.quantity ?? '';
+      // productprice.text = val.productprice ?? "";
+      print(val.lastPurchase);
+      unitVal.text = val.stock ?? "";
+      _selectedInventoryItem = val.title ?? '';
+    } else {
+      unitVal.text = val.stock ?? "";
+      _selectedInventoryItem = val.title ?? '';
+    }
 
     _selectedItem = val;
     notifyListeners();
   }
 
-  filterInventory(String val) {
-    _filterinventoryList = inventoryList
-        .where((item) => item.title!.toLowerCase().contains(val.toLowerCase()))
-        .toList();
+  filterInventory(String val, bool isSale) {
+    if (!isSale) {
+      _filterinventoryList = inventoryList
+          .where((item) =>
+              item.title!.toLowerCase().contains(val.toLowerCase()) &&
+              item.type == ModuleType.inventory.name)
+          .toList();
+    } else {
+      _filterinventoryList = inventoryList
+          .where(
+              (item) => item.title!.toLowerCase().contains(val.toLowerCase()))
+          .toList();
+    }
     notifyListeners();
   }
 
@@ -380,15 +426,14 @@ class AddProductProvider extends ChangeNotifier {
     searchProduct.clear();
     _filterinventoryList.clear();
   }
- Random num1 = Random(1000);
-    Random num2 = Random(1000);
+
+  Random num1 = Random(1000);
+  Random num2 = Random(1000);
   addSalesData(
     List<InventoryItem> data,
     BuildContext context,
     int type,
   ) async {
-   
-    
     if (data == []) {
       toast(msg: 'Please select any item first to sold', context: context);
     } else {
@@ -398,21 +443,23 @@ class AddProductProvider extends ChangeNotifier {
             discount: dicount.text.isEmpty || dicount.text == ''
                 ? '0.0'
                 : dicount.text,
-            contact: phone.text.isEmpty ? '0300 00000 ${num1.nextInt(999)+num2.nextInt(999)}' : phone.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001+num1.nextInt(999)+num2.nextInt(999)
+                ? 30000000001
                 : selectedId.text.isEmpty
                     ? DateTime(
-                            _pickedDate.year,
-                            _pickedDate.month,
-                            _pickedDate.day,
-                            now.hour,
-                            now.minute,
-                            now.second,
-                            now.millisecond)
-                        .millisecondsSinceEpoch + num1.nextInt(999) + num2.nextInt(999)
+                                _pickedDate.year,
+                                _pickedDate.month,
+                                _pickedDate.day,
+                                now.hour,
+                                now.minute,
+                                now.second,
+                                now.millisecond)
+                            .millisecondsSinceEpoch +
+                        num1.nextInt(999) +
+                        num2.nextInt(999)
                     : int.parse(selectedId.text),
             name: name.text.isEmpty ? 'Walking' : name.text,
             remainigBalance: _remainingBalance.toString(),
@@ -421,6 +468,7 @@ class AddProductProvider extends ChangeNotifier {
                 : payment.text,
             soldProducts: data
                 .map((e) => e.copyWith(
+                  
                     date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
                 .toList(),
           ),
@@ -433,21 +481,23 @@ class AddProductProvider extends ChangeNotifier {
             discount: dicount.text.isEmpty || dicount.text == ''
                 ? '0.0'
                 : dicount.text,
-            contact: phone.text.isEmpty ? '0300 00000${num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
+                ? 30000000001
                 : selectedId.text.isEmpty
                     ? DateTime(
-                            _pickedDate.year,
-                            _pickedDate.month,
-                            _pickedDate.day,
-                            now.hour,
-                            now.minute,
-                            now.second,
-                            now.millisecond)
-                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
+                                _pickedDate.year,
+                                _pickedDate.month,
+                                _pickedDate.day,
+                                now.hour,
+                                now.minute,
+                                now.second,
+                                now.millisecond)
+                            .millisecondsSinceEpoch +
+                        num1.nextInt(999) +
+                        num2.nextInt(999)
                     : int.parse(selectedId.text),
             name: name.text.isEmpty ? 'Walking' : name.text,
             remainigBalance: _remainingBalance.toString(),
@@ -456,6 +506,9 @@ class AddProductProvider extends ChangeNotifier {
                 : payment.text,
             soldProducts: data
                 .map((e) => e.copyWith(
+                    // buySaleQuantity: (double.parse(e.buySaleQuantity ?? '0.0') +
+                    //         double.parse(quantity.text))
+                    //     .toStringAsFixed(2),
                     date: DateFormat('yyyy-MM-dd').format(_pickedDate)))
                 .toList(),
           )
@@ -489,21 +542,23 @@ class AddProductProvider extends ChangeNotifier {
                 ? '0.0'
                 : dicount.text,
             name: name.text.isEmpty ? 'Walking' : name.text,
-            contact: phone.text.isEmpty ? '0300 00000${ num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
+                ? 30000000001
                 : selectedId.text.isEmpty
                     ? DateTime(
-                            _pickedDate.year,
-                            _pickedDate.month,
-                            _pickedDate.day,
-                            now.hour,
-                            now.minute,
-                            now.second,
-                            now.millisecond)
-                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
+                                _pickedDate.year,
+                                _pickedDate.month,
+                                _pickedDate.day,
+                                now.hour,
+                                now.minute,
+                                now.second,
+                                now.millisecond)
+                            .millisecondsSinceEpoch +
+                        num1.nextInt(999) +
+                        num2.nextInt(999)
                     : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""
@@ -524,21 +579,23 @@ class AddProductProvider extends ChangeNotifier {
                 ? '0.0'
                 : dicount.text,
             name: name.text.isEmpty ? 'Walking' : name.text,
-            contact: phone.text.isEmpty ? '0300 00000${ num1.nextInt(999) + num2.nextInt(999)}' : phone.text,
+            contact: phone.text.isEmpty ? '0300 0000000' : phone.text,
             customerId: selectedId.text.isEmpty &&
                     phone.text.isEmpty &&
                     name.text.isEmpty
-                ? 30000000001+ num1.nextInt(999) + num2.nextInt(999)
+                ? 30000000001
                 : selectedId.text.isEmpty
                     ? DateTime(
-                            _pickedDate.year,
-                            _pickedDate.month,
-                            _pickedDate.day,
-                            now.hour,
-                            now.minute,
-                            now.second,
-                            now.millisecond)
-                        .millisecondsSinceEpoch+ num1.nextInt(999) + num2.nextInt(999)
+                                _pickedDate.year,
+                                _pickedDate.month,
+                                _pickedDate.day,
+                                now.hour,
+                                now.minute,
+                                now.second,
+                                now.millisecond)
+                            .millisecondsSinceEpoch +
+                        num1.nextInt(999) +
+                        num2.nextInt(999)
                     : int.parse(selectedId.text),
             remainigBalance: _remainingBalance.toString(),
             paidBalance: payment.text.isEmpty || payment.text == ""

@@ -36,6 +36,7 @@ class InventoryItem {
    String? totalprice;
    String? productprice;
     String quantity;
+    String? type;
    String? lastPurchase;
    String? lastSale;
   final String? buySaleQuantity;
@@ -45,6 +46,7 @@ class InventoryItem {
   InventoryItem({
     required this.id,
     required this.title,
+    required this.type,
     required this.date,
     required this.totalprice,
     required this.productprice,
@@ -62,6 +64,7 @@ class InventoryItem {
         lastPurchase: json['lastPurchase'],
         lastSale: json['lastSale'],
         desc: json['desc'],
+        type: json['type'],
         title: json['title'],
         buySaleQuantity: json['buySaleQ'],
         date: json['date'],
@@ -75,6 +78,7 @@ class InventoryItem {
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
+        'type':type,
         'date': date,
         'totalprice': totalprice,
         'productprice': productprice,
@@ -97,11 +101,13 @@ class InventoryItem {
     String? lastPurchase,
     String? lastSale,
     String? desc,
+  String? type,
     String? buySaleQuantity,
     String? stock,
   }) {
     return InventoryItem(
       id: id ?? this.id,
+      type: type ?? this.type,
       title: title ?? this.title,
       buySaleQuantity: buySaleQuantity ?? this.buySaleQuantity,
       date: date ?? this.date,

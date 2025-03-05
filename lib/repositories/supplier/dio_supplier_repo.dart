@@ -43,92 +43,8 @@ class DioSupplierRepo implements SupplierRepo {
       required int currentUserId,
       required List<Datum> supplier}) async {
     try {
-      print("Supplier Length ${supplier.length}");
-      final model = PostPurchaseModel(
-        businessId: currentUserId,
-        data: supplier
-            .map((e) => PostSupplier(
-                  discount: int.tryParse(e.discount ?? '0') ?? 0,
-                  supplierId: e.customerId,
-                  soldDate: date,
-                  paidAmount: int.tryParse(e.paidBalance ?? '0') ?? 0,
-                  soldProducts: e.soldProducts!
-                          .map((s) => PostSoldProduct(
-                                title: s.title,
-                                price:
-                                    (double.tryParse(s.productprice ?? '0.0') ??
-                                            0.0)
-                                        .toInt(),
-                                id: s.id,
-                                quantity:
-                                    int.tryParse(s.buySaleQuantity ?? '0') ?? 0,
-                              ))
-                          .toList() ??
-                      [],
-                ))
-            .toList(),
-      );
-
-      print("MODEL DATA ${date}");
-      // List<int?> productId = supplier.soldProducts!.map((e) => e.id).toList();
-      // List<int?> quantity =
-      //     supplier.soldProducts!.map((e) => int.parse(e.buySaleQuantity??'0')).toList();
-      // List<double> price = supplier.soldProducts!
-      //     .map((e) => double.parse(e.productprice ?? '0.0'))
-      //     .toList();
-      // print('Sale ID $saleId');
-      // final data = {
-      //   "purchase_id": saleId,
-      //   "business_id":currentUserId ,
-      //   "purchase_date": date,
-      //   "supplier_id": supplier.customerId,
-      //   "detail_id": productId,
-      //   "cart_items": [1],
-      //   "quantity": quantity,
-
-      //   "price": price,
-      //   "investments": [supplier.paidBalance],
-      //   "profit": [100],
-      //   "sub_total": 750,
-      //   "discount": double.parse(supplier.discount ?? '0.0'),
-      //   "total_amount": double.parse(supplier.remainigBalance ?? '0.0') +
-      //       double.parse(supplier.paidBalance ?? '0.0') +
-      //       double.parse(supplier.discount ?? '0.0'),
-      //   "paid_amount": double.parse(supplier.paidBalance ?? '0.0'),
-      //   "balance": double.parse(supplier.remainigBalance ?? '0.0'),
-      //   "status": double.parse(supplier.remainigBalance ?? '0.0') == 0.0
-      //       ? 'paid'
-      //       : "unpaid"
-      // };
-      // List<Map<String, dynamic>> data = purchaseData
-      //     .map((e) => PostPurchaseModel(
-      //             businessId: currentUserId,
-      //             data: e.data
-      //                 .map((x) => PostSupplier(
-      //                       discount: int.tryParse(x.discount ?? '0') ?? 0,
-      //                       supplierId: x.customerId,
-      //                       soldDate: e.soldDate,
-      //                       paidAmount: int.tryParse(x.paidBalance ?? '0') ?? 0,
-      //                       soldProducts: x.soldProducts!
-      //                               .map((s) => PostSoldProduct(
-      //                                     title: s.title,
-      //                                     price: (double.tryParse(
-      //                                                 s.productprice ??
-      //                                                     '0.0') ??
-      //                                             0.0)
-      //                                         .toInt(),
-      //                                     id: s.id,
-      //                                     quantity: int.tryParse(
-      //                                             s.buySaleQuantity ?? '0') ??
-      //                                         0,
-      //                                   ))
-      //                               .toList() ??
-      //                           [],
-      //                     ))
-      //                 .toList())
-      //         .toJson())
-      //     .toList();
-// print("PURCHASE DATA IS  ********** $data");
+    
+           
       List<Map<String, dynamic>> newSalesList = [];
       for (var d in purchaseData) {
         for (var x in d.data) {
@@ -149,6 +65,11 @@ class DioSupplierRepo implements SupplierRepo {
           ).toJson());
         }
       }
+      final l = {
+        "business_id": currentUserId,
+        "data": newSalesList,
+      };
+      print("Purchase Module +++++++++++++++ $l");
       final response = await API().postRequest(context, ApiUrl.purchaseInsert, {
         "business_id": currentUserId,
         "data": newSalesList,

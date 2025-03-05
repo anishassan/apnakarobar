@@ -13,11 +13,15 @@ appText(
     
     int? maxLine}) {
   return Text(
+    
    context.getLocal(title),
     textAlign: textAlign,
     maxLines: maxLine,
     overflow: TextOverflow.ellipsis,
     style: TextStyle(
+      fontFeatures: [
+        FontFeature.tabularFigures(),
+        ],
         fontFamily: 'Poppins',
         fontWeight: fontWeight,
         fontSize: context.fontSize(fontSize),

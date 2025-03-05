@@ -5,6 +5,7 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:sales_management/constant/color.dart';
+import 'package:sales_management/constant/enums.dart';
 import 'package:sales_management/extensions/height_width_extension.dart';
 import 'package:sales_management/extensions/size_extension.dart';
 import 'package:sales_management/gen/assets.gen.dart';
@@ -34,7 +35,8 @@ class _AddNewItemState extends State<AddNewItem> {
   @override
   void initState() {
     // TODO: implement initState
-    Provider.of<AddProductProvider>(context, listen: false).getInventoryData();
+    Provider.of<AddProductProvider>(context, listen: false)
+        .getInventoryData(widget.type == 2 ? false : true);
     Provider.of<AddProductProvider>(context, listen: false).getSales();
     Provider.of<AddProductProvider>(context, listen: false).getPurchase();
 
@@ -101,14 +103,9 @@ class _AddNewItemState extends State<AddNewItem> {
                   shrinkWrap: true,
                   children: [
                     textField(
-                        context: context,
-                        controller: provider.title,
-                        hintText: 'Product Title'),
-                    context.heightBox(0.01),
-                    textField(
                         suffixIcon: GestureDetector(
                             child: Icon(
-                          provider.showUnits
+                          provider.showModule
                               ? Icons.arrow_drop_up
                               : Icons.arrow_drop_down,
                           color: ColorPalette.white,
@@ -117,11 +114,44 @@ class _AddNewItemState extends State<AddNewItem> {
                         bgColor: ColorPalette.green,
                         readOnly: true,
                         onTap: () {
-                          provider.toggleShowUnit();
+                          provider.toggleShowModule();
                         },
                         context: context,
                         controller: TextEditingController(),
-                        hintText: provider.selectedUnit),
+                        hintText: provider.selectedModuleType.name),
+                    if (provider.showModule) context.heightBox(0.01),
+                    if (provider.showModule)
+                      expandedTile(
+                          context: context,
+                          dataList: provider.modulesType,
+                          onTap: (val) {
+                            provider.changeModuleType(val);
+                            provider.toggleShowModule();
+                          }),
+                    context.heightBox(0.01),
+                    textField(
+                        context: context,
+                        controller: provider.title,
+                        hintText: 'Product Title'),
+                    context.heightBox(0.01),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      textField(
+                          suffixIcon: GestureDetector(
+                              child: Icon(
+                            provider.showUnits
+                                ? Icons.arrow_drop_up
+                                : Icons.arrow_drop_down,
+                            color: ColorPalette.white,
+                          )),
+                          hintColor: ColorPalette.white,
+                          bgColor: ColorPalette.green,
+                          readOnly: true,
+                          onTap: () {
+                            provider.toggleShowUnit();
+                          },
+                          context: context,
+                          controller: TextEditingController(),
+                          hintText: provider.selectedUnit),
                     if (provider.showUnits) context.heightBox(0.01),
                     if (provider.showUnits)
                       expandedTile(
@@ -131,49 +161,55 @@ class _AddNewItemState extends State<AddNewItem> {
                             provider.selectNewUnit(val);
                             provider.toggleShowUnit();
                           }),
-                    context.heightBox(0.01),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: numberTextField(
-                              context: context,
-                              textInputType: TextInputType.number,
-                              controller: provider.lastSale,
-                              hintText: 'Last Sale'),
-                        ),
-                        context.widthBox(0.01),
-                        Expanded(
-                          child: numberTextField(
-                              context: context,
-                              textInputType: TextInputType.number,
-                              controller: provider.lastPurchase,
-                              hintText: 'Last Purchase'),
-                        )
-                      ],
-                    ),
-                    context.heightBox(0.01),
-                    numberTextField(
-                      textInputType: TextInputType.number,
-                      context: context,
-                      controller: provider.quantity,
-                      hintText: 'Current Stock',
-                      onChange: (val) {
-                        if (val == null ||
-                            provider.productprice.text.isEmpty ||
-                            val == '') {
-                        } else {
-                          provider.totalprice.text =
-                              (double.parse(provider.productprice.text) *
-                                      double.parse(val ?? '0.0'))
-                                  .toString();
-                        }
-                      },
-                    ),
-                    context.heightBox(0.01),
-                    textField(
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      context.heightBox(0.01),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: numberTextField(
+                                context: context,
+                                textInputType: TextInputType.number,
+                                controller: provider.lastSale,
+                                hintText: 'Last Sale'),
+                          ),
+                          context.widthBox(0.01),
+                          Expanded(
+                            child: numberTextField(
+                                context: context,
+                                textInputType: TextInputType.number,
+                                controller: provider.lastPurchase,
+                                hintText: 'Last Purchase'),
+                          )
+                        ],
+                      ),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      context.heightBox(0.01),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      numberTextField(
+                        textInputType: TextInputType.number,
                         context: context,
-                        controller: provider.description,
-                        hintText: 'Description'),
+                        controller: provider.quantity,
+                        hintText: 'Current Stock',
+                        onChange: (val) {
+                          if (val == null ||
+                              provider.productprice.text.isEmpty ||
+                              val == '') {
+                          } else {
+                            provider.totalprice.text =
+                                (double.parse(provider.productprice.text) *
+                                        double.parse(val ?? '0.0'))
+                                    .toString();
+                          }
+                        },
+                      ),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      context.heightBox(0.01),
+                    if (provider.selectedModuleType == ModuleType.inventory)
+                      textField(
+                          context: context,
+                          controller: provider.description,
+                          hintText: 'Description'),
                     context.heightBox(0.01),
                     Row(
                       children: [
@@ -182,25 +218,31 @@ class _AddNewItemState extends State<AddNewItem> {
                                 textInputType: TextInputType.number,
                                 context: context,
                                 onChange: (val) {
-                                  if (val == null &&
-                                      provider.quantity.text.isEmpty) {
+                                  if (provider.selectedModuleType !=
+                                      ModuleType.inventory) {
                                   } else {
-                                    provider.totalprice.text =
-                                        (double.parse(provider.quantity.text) *
-                                                double.parse(val ?? '0.0'))
-                                            .toString();
+                                    if (val == null &&
+                                        provider.quantity.text.isEmpty) {
+                                    } else {
+                                      provider.totalprice.text = (double.parse(
+                                                  provider.quantity.text) *
+                                              double.parse(val ?? '0.0'))
+                                          .toString();
+                                    }
                                   }
                                 },
                                 controller: provider.productprice,
                                 hintText: 'Current Price')),
-                        context.widthBox(0.01),
-                        Expanded(
-                            child: numberTextField(
-                                textInputType: TextInputType.number,
-                                context: context,
-                                readOnly: true,
-                                controller: provider.totalprice,
-                                hintText: 'Total Price')),
+                        if (provider.selectedModuleType == ModuleType.inventory)
+                          context.widthBox(0.01),
+                        if (provider.selectedModuleType == ModuleType.inventory)
+                          Expanded(
+                              child: numberTextField(
+                                  textInputType: TextInputType.number,
+                                  context: context,
+                                  readOnly: true,
+                                  controller: provider.totalprice,
+                                  hintText: 'Total Price')),
                       ],
                     ),
                     context.heightBox(0.01),
@@ -535,28 +577,34 @@ class _AddNewItemState extends State<AddNewItem> {
                                   context: context,
                                 ),
                               ),
-                              context.widthBox(0.01),
-                              Expanded(
-                                child: numberTextField(
-                                    textInputType: TextInputType.number,
-                                    onChange: (val) {
-                                      if (val == null ||
-                                          provider.productprice.text.isEmpty ||
-                                          val == '') {
-                                      } else {
-                                        provider.totalprice.text =
-                                            (double.parse(provider
-                                                        .productprice.text) *
-                                                    double.parse(val ?? '0.0'))
-                                                .toString();
-                                      }
-                                    },
-                                    bgColor: ColorPalette.white,
-                                    opacity: 1,
-                                    context: context,
-                                    controller: provider.quantity,
-                                    hintText: 'Quantity'),
-                              )
+                              if (provider.selectedItem.type !=
+                                  ModuleType.services.name)
+                                context.widthBox(0.01),
+                              if (provider.selectedItem.type !=
+                                  ModuleType.services.name)
+                                Expanded(
+                                  child: numberTextField(
+                                      isFormatter: false,
+                                      textInputType: TextInputType.number,
+                                      onChange: (val) {
+                                        if (val == null ||
+                                            provider
+                                                .productprice.text.isEmpty ||
+                                            val == '') {
+                                        } else {
+                                          provider.totalprice
+                                              .text = (double.parse(provider
+                                                      .productprice.text) *
+                                                  double.parse(val ?? '0.0'))
+                                              .toString();
+                                        }
+                                      },
+                                      bgColor: ColorPalette.white,
+                                      opacity: 1,
+                                      context: context,
+                                      controller: provider.quantity,
+                                      hintText: 'Quantity'),
+                                )
                             ],
                           ),
                           context.heightBox(0.01),
@@ -573,9 +621,13 @@ class _AddNewItemState extends State<AddNewItem> {
                             children: [
                               Expanded(
                                   child: numberTextField(
+                                      isFormatter: false,
                                       textInputType: TextInputType.number,
                                       readOnly: widget.type == 1 ? true : false,
                                       onChange: (val) {
+                                        // if (widget.type == 1) {
+                                        //
+                                        // }
                                         if (val == null &&
                                             provider.quantity.text.isEmpty) {
                                         } else {
@@ -592,21 +644,32 @@ class _AddNewItemState extends State<AddNewItem> {
                                       controller: provider.productprice,
                                       hintText: 'Sale Rate (per Unit)')),
                               context.widthBox(0.01),
-                              Expanded(
-                                child: textField(
-                                    readOnly: true,
-                                    bgColor: ColorPalette.white,
-                                    opacity: 1,
-                                    context: context,
-                                    controller: provider.unitVal,
-                                    hintText: 'Measurement Unit'),
-                              )
+                              if (provider.selectedItem.type !=
+                                  ModuleType.services.name)
+                                Expanded(
+                                  child: textField(
+                                      readOnly: true,
+                                      bgColor: ColorPalette.white,
+                                      opacity: 1,
+                                      context: context,
+                                      controller: provider.unitVal,
+                                      hintText: 'Measurement Unit'),
+                                )
                             ],
                           ),
                           context.heightBox(0.01),
-                          if (widget.type == 1)
+                          if (widget.type == 1 &&
+                              provider.selectedItem.type !=
+                                  ModuleType.services.name)
                             textField(
-                                readOnly: true,
+                                onChange: (val) {
+                                  final v = double.parse(val ?? '0.0') /
+                                      double.parse(
+                                          provider.selectedItem.productprice ??
+                                              '0.0');
+                                  provider.quantity.text = v.toStringAsFixed(2);
+                                },
+                                readOnly: widget.type == 1 ? false : true,
                                 bgColor: ColorPalette.white,
                                 opacity: 1,
                                 context: context,

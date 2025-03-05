@@ -275,7 +275,9 @@ class _CustomerSupplierDetailScreenState
                                         context: context,
                                         title: model.sales == '0.0'
                                             ? ''
-                                            : model.sales ?? '',
+                                            : double.parse(model.sales ?? '0.0')
+                                                    .toStringAsFixed(2) ??
+                                                '',
                                         // provider.calculatesingleTotalLastSale(
                                         //             model.data,
                                         //             data.customerId ?? 0) ==
